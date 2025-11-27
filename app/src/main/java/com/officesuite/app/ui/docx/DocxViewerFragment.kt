@@ -81,9 +81,6 @@ class DocxViewerFragment : Fragment() {
         binding.toolbar.apply {
             setNavigationOnClickListener {
                 findNavController().navigateUp()
-                @Suppress("DEPRECATION")
-                requireActivity().onBackPressed()
-                requireActivity().onBackPressedDispatcher.onBackPressed()
             }
             inflateMenu(R.menu.menu_docx_viewer)
             setOnMenuItemClickListener { item ->
@@ -121,33 +118,25 @@ class DocxViewerFragment : Fragment() {
                     }
                     
                     if (file != null) {
-                        val content = withContext(Dispatchers.IO) {
-                            extractDocxContent(file)
-                        }
-                        Pair(file, content)
-                    } else {
-                        throw IllegalStateException("Could not read file")
-                    cachedFile?.let { file ->
                         val htmlContent = withContext(Dispatchers.IO) {
                             convertDocxToHtml(file)
                         }
-                        
-                        binding.toolbar.title = file.name
-                        binding.webView.loadDataWithBaseURL(
-                            null,
-                            htmlContent,
-                            "text/html",
-                            "UTF-8",
-                            null
-                        )
-                        binding.progressBar.visibility = View.GONE
+                        Pair(file, htmlContent)
+                    } else {
+                        throw IllegalStateException("Could not read file")
                     }
                 }
                 
-                result.onSuccess { (file, content) ->
+                result.onSuccess { (file, htmlContent) ->
                     cachedFile = file
                     binding.toolbar.title = file.name
-                    binding.textContent.text = content
+                    binding.webView.loadDataWithBaseURL(
+                        null,
+                        htmlContent,
+                        "text/html",
+                        "UTF-8",
+                        null
+                    )
                     binding.progressBar.visibility = View.GONE
                 }.onError { error ->
                     binding.progressBar.visibility = View.GONE
@@ -249,8 +238,6 @@ class DocxViewerFragment : Fragment() {
             document.close()
         } catch (e: Exception) {
             ErrorHandler.logError("DocxViewer", "Error reading document", e)
-            builder.append("Error reading document: ${ErrorHandler.getErrorMessage(e)}")
-            e.printStackTrace()
             htmlBuilder.append("<p style=\"color: red;\">Error reading document: ${escapeHtml(e.message ?: "Unknown error")}</p>")
         }
         
