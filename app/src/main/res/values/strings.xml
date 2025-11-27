@@ -193,6 +193,32 @@
     <string name="error_file_not_found">File not found</string>
     <string name="error_unsupported_format">Unsupported file format</string>
     <string name="error_conversion">Error during conversion</string>
+    
+    <!-- App Shortcuts -->
+    <string name="shortcut_scan_short">Scan</string>
+    <string name="shortcut_scan_long">Scan Document</string>
+    <string name="shortcut_open_short">Open</string>
+    <string name="shortcut_open_long">Open File</string>
+    <string name="shortcut_create_short">Create</string>
+    <string name="shortcut_create_long">Create New Document</string>
+    <string name="shortcut_convert_short">Convert</string>
+    <string name="shortcut_convert_long">Convert File</string>
+    
+    <!-- Widget -->
+    <string name="widget_name">Office Suite Quick Actions</string>
+    <string name="widget_description">Quick access to scan, open, and create documents</string>
+    <string name="widget_open_file">Open File</string>
+    <string name="widget_scan">Scan</string>
+    <string name="widget_convert">Convert</string>
+    <string name="widget_create">Create</string>
+    
+    <!-- Picture-in-Picture -->
+    <string name="pip_mode">Picture-in-Picture</string>
+    <string name="enter_pip">Enter Picture-in-Picture</string>
+    
+    <!-- Share -->
+    <string name="receive_file">Receive File</string>
+    <string name="file_received">File received successfully</string>
     <string name="error_ocr_failed">OCR processing failed</string>
     <string name="error_scan_failed">Scanning failed</string>
     

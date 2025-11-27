@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Shortcut to scan a document -->
+    <shortcut
+        android:shortcutId="scan_document"
+        android:enabled="true"
+        android:icon="@drawable/ic_scanner"
+        android:shortcutShortLabel="@string/shortcut_scan_short"
+        android:shortcutLongLabel="@string/shortcut_scan_long">
+        <intent
+            android:action="com.officesuite.app.ACTION_SCAN"
+            android:targetPackage="com.officesuite.app"
+            android:targetClass="com.officesuite.app.MainActivity" />
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+
+    <!-- Shortcut to open a file -->
+    <shortcut
+        android:shortcutId="open_file"
+        android:enabled="true"
+        android:icon="@drawable/ic_folder"
+        android:shortcutShortLabel="@string/shortcut_open_short"
+        android:shortcutLongLabel="@string/shortcut_open_long">
+        <intent
+            android:action="com.officesuite.app.ACTION_OPEN_FILE"
+            android:targetPackage="com.officesuite.app"
+            android:targetClass="com.officesuite.app.MainActivity" />
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+
+    <!-- Shortcut to create a new document -->
+    <shortcut
+        android:shortcutId="create_document"
+        android:enabled="true"
+        android:icon="@drawable/ic_add"
+        android:shortcutShortLabel="@string/shortcut_create_short"
+        android:shortcutLongLabel="@string/shortcut_create_long">
+        <intent
+            android:action="com.officesuite.app.ACTION_CREATE_NEW"
+            android:targetPackage="com.officesuite.app"
+            android:targetClass="com.officesuite.app.MainActivity" />
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+
+    <!-- Shortcut to convert a file -->
+    <shortcut
+        android:shortcutId="convert_file"
+        android:enabled="true"
+        android:icon="@drawable/ic_convert"
+        android:shortcutShortLabel="@string/shortcut_convert_short"
+        android:shortcutLongLabel="@string/shortcut_convert_long">
+        <intent
+            android:action="com.officesuite.app.ACTION_CONVERT"
+            android:targetPackage="com.officesuite.app"
+            android:targetClass="com.officesuite.app.MainActivity" />
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+
+</shortcuts>

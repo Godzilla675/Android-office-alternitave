@@ -3,6 +3,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/action_pip"
+        android:icon="@drawable/ic_pip"
+        android:title="@string/pip_mode"
         android:id="@+id/action_comments"
         android:icon="@drawable/ic_edit"
         android:title="@string/comments"
