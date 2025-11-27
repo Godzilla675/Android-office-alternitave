@@ -13,5 +13,18 @@
     <style name="Theme.OfficeSuite.AppBarOverlay" parent="ThemeOverlay.MaterialComponents.Dark.ActionBar" />
 
     <style name="Theme.OfficeSuite.PopupOverlay" parent="ThemeOverlay.MaterialComponents.Light" />
+    
+    <!-- Fullscreen theme for presentation mode -->
+    <style name="Theme.OfficeSuite.Fullscreen" parent="Theme.OfficeSuite">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+    
+    <!-- Reading mode theme (sepia) -->
+    <style name="Theme.OfficeSuite.Reading" parent="Theme.OfficeSuite">
+        <item name="android:windowBackground">@color/reading_mode_bg</item>
+    </style>
 
 </resources>

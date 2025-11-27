@@ -67,6 +67,14 @@
             </intent-filter>
         </activity>
 
+        <!-- Presentation Mode Activity -->
+        <activity
+            android:name=".ui.pptx.PresentationModeActivity"
+            android:exported="false"
+            android:theme="@style/Theme.OfficeSuite.Fullscreen"
+            android:screenOrientation="landscape"
+            android:configChanges="orientation|screenSize" />
+
         <!-- File Provider for sharing files -->
         <provider
             android:name="androidx.core.content.FileProvider"

@@ -112,6 +112,12 @@ dependencies {
 
     // PDF generation
     implementation 'com.itextpdf:itext7-core:7.2.5'
+    
+    // JSON parsing for preferences
+    implementation 'com.google.code.gson:gson:2.10.1'
+    
+    // Print support
+    implementation 'androidx.print:print:1.0.0'
 
     // Testing
     testImplementation 'junit:junit:4.13.2'

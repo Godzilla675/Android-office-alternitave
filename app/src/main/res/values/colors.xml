@@ -23,4 +23,14 @@
     <color name="surface_light">#FFFFFF</color>
     <color name="text_primary">#212121</color>
     <color name="text_secondary">#757575</color>
+    
+    <!-- Reading mode (sepia) colors -->
+    <color name="reading_mode_bg">#F5F1E8</color>
+    <color name="reading_mode_text">#5B4636</color>
+    
+    <!-- Dark mode colors -->
+    <color name="background_dark">#121212</color>
+    <color name="surface_dark">#1E1E1E</color>
+    <color name="text_primary_dark">#E1E1E1</color>
+    <color name="text_secondary_dark">#B3B3B3</color>
 </resources>

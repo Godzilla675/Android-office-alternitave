@@ -1,5 +1,6 @@
 package com.officesuite.app.ui.pptx
 
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
@@ -64,6 +65,10 @@ class PptxViewerFragment : Fragment() {
             inflateMenu(R.menu.menu_pptx_viewer)
             setOnMenuItemClickListener { item ->
                 when (item.itemId) {
+                    R.id.action_slideshow -> {
+                        startSlideshow()
+                        true
+                    }
                     R.id.action_share -> {
                         shareDocument()
                         true
@@ -244,6 +249,17 @@ class PptxViewerFragment : Fragment() {
     private fun convertToPdf() {
         Toast.makeText(context, "Converting to PDF...", Toast.LENGTH_SHORT).show()
         // Navigate to converter or perform conversion
+    }
+
+    private fun startSlideshow() {
+        fileUri?.let { uri ->
+            val intent = Intent(requireContext(), PresentationModeActivity::class.java).apply {
+                putExtra(PresentationModeActivity.EXTRA_FILE_URI, uri.toString())
+            }
+            startActivity(intent)
+        } ?: run {
+            Toast.makeText(context, "No presentation loaded", Toast.LENGTH_SHORT).show()
+        }
     }
 
     override fun onDestroyView() {
