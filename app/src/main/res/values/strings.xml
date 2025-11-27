@@ -392,7 +392,6 @@
     <string name="select_color">Select Color</string>
     <string name="enter_text">Enter Text</string>
     <string name="stroke_width">Stroke Width</string>
-    <string name="font_size">Font Size</string>
     <string name="annotations_saved">Annotations saved</string>
     <string name="document_saved">Document saved</string>
     <string name="presentation_saved">Presentation saved</string>

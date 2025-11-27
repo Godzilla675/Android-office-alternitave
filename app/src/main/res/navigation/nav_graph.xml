@@ -93,7 +93,12 @@
         android:name="com.officesuite.app.ui.data.CsvViewerFragment"
         android:label="@string/csv_file"
         tools:layout="@layout/fragment_csv_viewer">
-    <!-- Resolved Conflict Fragments -->
+        <argument
+            android:name="file_uri"
+            app:argType="string"
+            android:defaultValue="" />
+    </fragment>
+
     <!-- XLSX Viewer Fragment -->
     <fragment
         android:id="@+id/xlsxViewerFragment"
@@ -136,6 +141,12 @@
         android:name="com.officesuite.app.ui.data.JsonViewerFragment"
         android:label="@string/json_file"
         tools:layout="@layout/fragment_json_viewer">
+        <argument
+            android:name="file_uri"
+            app:argType="string"
+            android:defaultValue="" />
+    </fragment>
+
     <!-- DOCX Editor Fragment -->
     <fragment
         android:id="@+id/docxEditorFragment"
@@ -150,9 +161,6 @@
             android:name="is_xml"
             app:argType="boolean"
             android:defaultValue="false" />
-    </fragment>
-
-</navigation>
     </fragment>
 
 </navigation>
