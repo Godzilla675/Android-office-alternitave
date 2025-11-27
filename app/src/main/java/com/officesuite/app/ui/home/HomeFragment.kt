@@ -134,6 +134,9 @@ class HomeFragment : Fragment() {
             DocumentType.PPTX, DocumentType.PPT -> {
                 findNavController().navigate(R.id.pptxViewerFragment, bundle)
             }
+            DocumentType.XLSX, DocumentType.XLS -> {
+                findNavController().navigate(R.id.xlsxViewerFragment, bundle)
+            }
             DocumentType.MARKDOWN, DocumentType.TXT -> {
                 findNavController().navigate(R.id.markdownFragment, bundle)
             }

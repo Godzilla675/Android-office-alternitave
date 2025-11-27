@@ -141,6 +141,7 @@ class MainActivity : AppCompatActivity() {
             "pdf" -> navController.navigate(R.id.pdfViewerFragment, bundle)
             "pptx" -> navController.navigate(R.id.pptxViewerFragment, bundle)
             "docx" -> navController.navigate(R.id.docxViewerFragment, bundle)
+            "xlsx" -> navController.navigate(R.id.xlsxViewerFragment, bundle)
             "md" -> navController.navigate(R.id.markdownFragment, bundle)
         }
     }

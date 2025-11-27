@@ -106,4 +106,16 @@
             android:defaultValue="" />
     </fragment>
 
+    <!-- XLSX Viewer Fragment -->
+    <fragment
+        android:id="@+id/xlsxViewerFragment"
+        android:name="com.officesuite.app.ui.xlsx.XlsxViewerFragment"
+        android:label="Spreadsheet"
+        tools:layout="@layout/fragment_xlsx_viewer">
+        <argument
+            android:name="file_uri"
+            app:argType="string"
+            android:defaultValue="" />
+    </fragment>
+
 </navigation>
