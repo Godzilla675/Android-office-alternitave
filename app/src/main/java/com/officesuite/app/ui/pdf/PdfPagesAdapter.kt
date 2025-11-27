@@ -16,6 +16,7 @@ class PdfPagesAdapter(
 
     private var pdfRenderer: PdfRenderer? = null
     private var pageCount = 0
+    private val renderedPages = mutableMapOf<Int, Bitmap>()
 
     init {
         try {
@@ -43,7 +44,14 @@ class PdfPagesAdapter(
 
     override fun getItemCount(): Int = pageCount
 
+    override fun onViewRecycled(holder: PageViewHolder) {
+        super.onViewRecycled(holder)
+        holder.recycle()
+    }
+
     fun close() {
+        renderedPages.values.forEach { it.recycle() }
+        renderedPages.clear()
         pdfRenderer?.close()
     }
 
@@ -51,9 +59,21 @@ class PdfPagesAdapter(
         private val binding: ItemPdfPageBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
+        private var currentPageIndex: Int = -1
+
         fun bind(pageIndex: Int) {
+            currentPageIndex = pageIndex
+            
             pdfRenderer?.let { renderer ->
                 try {
+                    // Check if page is already rendered
+                    val cachedBitmap = renderedPages[pageIndex]
+                    if (cachedBitmap != null && !cachedBitmap.isRecycled) {
+                        binding.imagePage.setImageBitmap(cachedBitmap)
+                        binding.textPageNumber.text = "Page ${pageIndex + 1}"
+                        return
+                    }
+                    
                     val page = renderer.openPage(pageIndex)
                     
                     // Calculate dimensions for good quality
@@ -64,6 +84,9 @@ class PdfPagesAdapter(
                     val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
                     page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
                     
+                    // Cache the rendered bitmap
+                    renderedPages[pageIndex] = bitmap
+                    
                     binding.imagePage.setImageBitmap(bitmap)
                     binding.textPageNumber.text = "Page ${pageIndex + 1}"
                     
@@ -72,6 +95,10 @@ class PdfPagesAdapter(
                     e.printStackTrace()
                 }
             }
+        }
+
+        fun recycle() {
+            binding.imagePage.setImageBitmap(null)
         }
     }
 }

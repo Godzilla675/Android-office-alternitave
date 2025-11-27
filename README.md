@@ -12,9 +12,43 @@ A lightweight, feature-rich office suite for Android that provides comprehensive
 - **Markdown** - View and edit Markdown files with live preview
 
 ### ✏️ Document Editing
-- **Markdown Editor** - Full markdown editor with formatting toolbar and live preview
-- **Text Editor** - Basic text editing capabilities
-- **Formatting Support** - Bold, italic, headings, lists, links, code blocks
+
+#### PDF Editor
+- **Freehand Drawing** - Draw directly on PDF pages with customizable pen
+- **Highlighter Tool** - Highlight text and areas with translucent colors
+- **Shape Tools** - Add rectangles, circles, arrows, and lines
+- **Text Annotations** - Add text notes anywhere on the document
+- **Eraser Tool** - Remove annotations easily
+- **Color Picker** - Choose from 24 vibrant colors
+- **Stroke Width Control** - Adjust line thickness
+- **Undo/Redo** - Full undo/redo support for all actions
+- **Page Navigation** - Navigate between pages while preserving annotations
+
+#### PowerPoint Editor
+- **Slide Annotations** - Draw and annotate on presentation slides
+- **Shape Tools** - Add rectangles, circles, arrows, and lines
+- **Text Additions** - Add text annotations to slides
+- **Image Insertion** - Insert images into presentations
+- **Slide Management** - Add new slides to presentations
+- **Color & Stroke Controls** - Customize annotation appearance
+- **Undo/Redo Support** - Full editing history
+
+#### Word Document Editor
+- **Rich Text Editing** - Full WYSIWYG text editor
+- **Text Formatting** - Bold, italic, underline support
+- **Text Alignment** - Left, center, right alignment
+- **Font Size Control** - Multiple font size options
+- **Text Color** - Change text foreground color
+- **Highlight Color** - Add background color to text
+- **Bullet Lists** - Insert bullet point lists
+- **Numbered Lists** - Insert numbered lists
+- **Image Insertion** - Add images to documents
+- **Undo/Redo** - Full editing history support
+- **Save As DOCX** - Export documents in Word format
+
+#### Markdown Editor
+- Full markdown editor with formatting toolbar and live preview
+- Formatting Support - Bold, italic, headings, lists, links, code blocks
 
 ### 🔄 File Conversion
 - **PDF to DOCX** - Convert PDF documents to Word format
@@ -83,6 +117,7 @@ app/
 │   │   ├── ui/
 │   │   │   ├── converter/      # File conversion UI
 │   │   │   ├── docx/           # DOCX viewer
+│   │   │   ├── editor/         # Document editors (PDF, PPTX, DOCX)
 │   │   │   ├── home/           # Home screen
 │   │   │   ├── markdown/       # Markdown editor
 │   │   │   ├── pdf/            # PDF viewer

@@ -116,4 +116,132 @@
     <string name="search">Search</string>
     <string name="search_documents">Search documents</string>
     <string name="no_results">No results found</string>
+
+    <!-- PDF Annotation -->
+    <string name="annotation_tools">Annotation Tools</string>
+    <string name="highlight">Highlight</string>
+    <string name="underline">Underline</string>
+    <string name="strikethrough">Strikethrough</string>
+    <string name="text_box">Text Box</string>
+    <string name="sticky_note">Sticky Note</string>
+    <string name="freehand_draw">Freehand Draw</string>
+    <string name="add_signature">Add Signature</string>
+    <string name="color_yellow">Yellow</string>
+    <string name="color_green">Green</string>
+    <string name="color_blue">Blue</string>
+    <string name="color_pink">Pink</string>
+    <string name="color_orange">Orange</string>
+    <string name="annotation_saved">Annotation saved</string>
+    <string name="annotation_failed">Failed to add annotation</string>
+
+    <!-- PDF Page Management -->
+    <string name="page_management">Page Management</string>
+    <string name="merge_pdfs">Merge PDFs</string>
+    <string name="split_pdf">Split PDF</string>
+    <string name="extract_pages">Extract Pages</string>
+    <string name="reorder_pages">Reorder Pages</string>
+    <string name="rotate_page">Rotate Page</string>
+    <string name="delete_page">Delete Page</string>
+    <string name="select_pages">Select Pages</string>
+    <string name="pages_extracted">Pages extracted successfully</string>
+    <string name="merge_complete">PDFs merged successfully</string>
+    <string name="split_complete">PDF split successfully</string>
+
+    <!-- Security Features -->
+    <string name="security">Security</string>
+    <string name="password_protect">Password Protect</string>
+    <string name="remove_password">Remove Password</string>
+    <string name="biometric_lock">Biometric Lock</string>
+    <string name="enter_password">Enter Password</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="owner_password">Owner Password (for editing)</string>
+    <string name="user_password">User Password (for viewing)</string>
+    <string name="allow_printing">Allow Printing</string>
+    <string name="allow_copy">Allow Copy</string>
+    <string name="allow_modification">Allow Modification</string>
+    <string name="encryption_strength">Encryption Strength</string>
+    <string name="password_protected">Document is password protected</string>
+    <string name="unlock_document">Unlock Document</string>
+    <string name="incorrect_password">Incorrect password</string>
+    <string name="password_applied">Password protection applied</string>
+    <string name="password_removed">Password protection removed</string>
+    <string name="biometric_required">Biometric authentication required</string>
+    <string name="biometric_success">Authentication successful</string>
+    <string name="biometric_failed">Authentication failed</string>
+    <string name="biometric_not_available">Biometric authentication not available</string>
+    <string name="enable_biometric">Enable Biometric Lock</string>
+    <string name="document_locked">Document Locked</string>
+    <string name="document_unlocked">Document Unlocked</string>
+
+    <!-- Cloud Storage -->
+    <string name="cloud_storage">Cloud Storage</string>
+    <string name="google_drive">Google Drive</string>
+    <string name="dropbox">Dropbox</string>
+    <string name="onedrive">OneDrive</string>
+    <string name="local_storage">Local Storage</string>
+    <string name="sign_in">Sign In</string>
+    <string name="sign_out">Sign Out</string>
+    <string name="connecting">Connecting...</string>
+    <string name="connected">Connected</string>
+    <string name="not_connected">Not Connected</string>
+    <string name="upload_to_cloud">Upload to Cloud</string>
+    <string name="download_from_cloud">Download from Cloud</string>
+    <string name="sync_now">Sync Now</string>
+    <string name="auto_sync">Auto Sync</string>
+    <string name="sync_on_wifi">Sync on WiFi Only</string>
+    <string name="upload_complete">Upload complete</string>
+    <string name="download_complete">Download complete</string>
+    <string name="sync_complete">Sync complete</string>
+    <string name="upload_failed">Upload failed</string>
+    <string name="download_failed">Download failed</string>
+    <string name="select_cloud_provider">Select Cloud Provider</string>
+    <string name="no_cloud_connected">No cloud storage connected</string>
+    
+    <!-- Editor -->
+    <string name="pdf_editor">PDF Editor</string>
+    <string name="document_editor">Document Editor</string>
+    <string name="presentation_editor">Presentation Editor</string>
+    <string name="edit_document">Edit Document</string>
+    <string name="clear_annotations">Clear Annotations</string>
+    <string name="save_as">Save As</string>
+    <string name="export_to_pdf">Export to PDF</string>
+    <string name="add_slide">Add Slide</string>
+    <string name="slide_of">Slide %1$d of %2$d</string>
+    
+    <!-- Editor Tools -->
+    <string name="tool_pen">Pen</string>
+    <string name="tool_highlighter">Highlighter</string>
+    <string name="tool_eraser">Eraser</string>
+    <string name="tool_text">Add Text</string>
+    <string name="tool_rectangle">Rectangle</string>
+    <string name="tool_circle">Circle</string>
+    <string name="tool_arrow">Arrow</string>
+    <string name="tool_line">Line</string>
+    <string name="tool_image">Insert Image</string>
+    <string name="tool_color">Color</string>
+    <string name="tool_stroke_width">Stroke Width</string>
+    <string name="tool_undo">Undo</string>
+    <string name="tool_redo">Redo</string>
+    
+    <!-- Text Formatting -->
+    <string name="format_bold">Bold</string>
+    <string name="format_italic">Italic</string>
+    <string name="format_underline">Underline</string>
+    <string name="format_align_left">Align Left</string>
+    <string name="format_align_center">Align Center</string>
+    <string name="format_align_right">Align Right</string>
+    <string name="format_text_color">Text Color</string>
+    <string name="format_highlight">Highlight</string>
+    <string name="format_font_size">Font Size</string>
+    <string name="format_bullet_list">Bullet List</string>
+    <string name="format_numbered_list">Numbered List</string>
+    
+    <!-- Dialogs -->
+    <string name="select_color">Select Color</string>
+    <string name="enter_text">Enter Text</string>
+    <string name="stroke_width">Stroke Width</string>
+    <string name="font_size">Font Size</string>
+    <string name="annotations_saved">Annotations saved</string>
+    <string name="document_saved">Document saved</string>
+    <string name="presentation_saved">Presentation saved</string>
 </resources>

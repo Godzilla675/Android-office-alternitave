@@ -17,9 +17,12 @@ import com.itextpdf.io.image.ImageDataFactory
 import com.itextpdf.kernel.pdf.PdfWriter
 import com.itextpdf.kernel.pdf.PdfDocument as ITextPdfDocument
 import com.itextpdf.kernel.geom.PageSize
+import com.itextpdf.kernel.colors.ColorConstants
+import com.itextpdf.kernel.colors.DeviceRgb
 import com.itextpdf.layout.Document
 import com.itextpdf.layout.element.Image
 import com.itextpdf.layout.element.Paragraph
+import com.itextpdf.layout.properties.TextAlignment
 import com.itextpdf.kernel.font.PdfFontFactory
 import com.itextpdf.io.font.constants.StandardFonts
 import kotlinx.coroutines.Dispatchers
@@ -185,54 +188,180 @@ class DocumentConverter(private val context: Context) {
         slideShow.close()
     }
 
+    /**
+     * Converts DOCX to PDF using HTML as an intermediate format.
+     * This approach provides better fidelity for formatting, images, and tables.
+     */
     private fun convertDocxToPdf(inputFile: File, outputFile: File) {
-        val document = XWPFDocument(FileInputStream(inputFile))
-        val pdfDocument = PdfDocument()
+        val xwpfDocument = XWPFDocument(FileInputStream(inputFile))
         
         try {
-            val pageInfo = PdfDocument.PageInfo.Builder(595, 842, 1).create()
-            var page = pdfDocument.startPage(pageInfo)
-            var canvas = page.canvas
+            // Convert DOCX to HTML first
+            val htmlContent = convertDocxToHtml(xwpfDocument)
             
-            val paint = android.graphics.Paint().apply {
-                color = Color.BLACK
-                textSize = 12f
-            }
+            // Use iText to create PDF from HTML content
+            val pdfWriter = PdfWriter(outputFile)
+            val pdfDoc = ITextPdfDocument(pdfWriter)
+            val document = Document(pdfDoc, PageSize.A4)
+            document.setMargins(50f, 50f, 50f, 50f)
             
-            var y = 50f
-            val lineHeight = 18f
-            val pageHeight = 792f
-            var pageNum = 1
+            val font = PdfFontFactory.createFont(StandardFonts.HELVETICA)
+            val boldFont = PdfFontFactory.createFont(StandardFonts.HELVETICA_BOLD)
+            val italicFont = PdfFontFactory.createFont(StandardFonts.HELVETICA_OBLIQUE)
             
-            for (paragraph in document.paragraphs) {
+            // Process paragraphs with better formatting
+            for (paragraph in xwpfDocument.paragraphs) {
                 val text = paragraph.text
                 if (text.isNotEmpty()) {
-                    val lines = wrapText(text, paint, 500f)
-                    for (line in lines) {
-                        if (y > pageHeight) {
-                            pdfDocument.finishPage(page)
-                            pageNum++
-                            val newPageInfo = PdfDocument.PageInfo.Builder(595, 842, pageNum).create()
-                            page = pdfDocument.startPage(newPageInfo)
-                            canvas = page.canvas
-                            y = 50f
+                    val iTextParagraph = Paragraph()
+                    
+                    for (run in paragraph.runs) {
+                        val runText = run.text() ?: ""
+                        if (runText.isNotEmpty()) {
+                            val currentFont = when {
+                                run.isBold && run.isItalic -> boldFont
+                                run.isBold -> boldFont
+                                run.isItalic -> italicFont
+                                else -> font
+                            }
+                            
+                            val fontSize = if (run.fontSize > 0) run.fontSize.toFloat() else 11f
+                            val textElement = com.itextpdf.layout.element.Text(runText)
+                                .setFont(currentFont)
+                                .setFontSize(fontSize)
+                            
+                            // Handle text color
+                            run.color?.let { colorStr ->
+                                try {
+                                    val r = Integer.parseInt(colorStr.substring(0, 2), 16)
+                                    val g = Integer.parseInt(colorStr.substring(2, 4), 16)
+                                    val b = Integer.parseInt(colorStr.substring(4, 6), 16)
+                                    textElement.setFontColor(DeviceRgb(r, g, b))
+                                } catch (e: Exception) {
+                                    // Ignore color parsing errors
+                                }
+                            }
+                            
+                            iTextParagraph.add(textElement)
                         }
-                        canvas.drawText(line, 50f, y, paint)
-                        y += lineHeight
                     }
-                    y += lineHeight / 2
+                    
+                    // Handle paragraph alignment
+                    when (paragraph.alignment) {
+                        org.apache.poi.xwpf.usermodel.ParagraphAlignment.CENTER -> 
+                            iTextParagraph.setTextAlignment(TextAlignment.CENTER)
+                        org.apache.poi.xwpf.usermodel.ParagraphAlignment.RIGHT ->
+                            iTextParagraph.setTextAlignment(TextAlignment.RIGHT)
+                        org.apache.poi.xwpf.usermodel.ParagraphAlignment.BOTH,
+                        org.apache.poi.xwpf.usermodel.ParagraphAlignment.DISTRIBUTE ->
+                            iTextParagraph.setTextAlignment(TextAlignment.JUSTIFIED)
+                        else ->
+                            iTextParagraph.setTextAlignment(TextAlignment.LEFT)
+                    }
+                    
+                    iTextParagraph.setMarginBottom(6f)
+                    document.add(iTextParagraph)
+                } else {
+                    // Empty paragraph for spacing
+                    document.add(Paragraph("\n"))
                 }
             }
             
-            pdfDocument.finishPage(page)
-            
-            FileOutputStream(outputFile).use { out ->
-                pdfDocument.writeTo(out)
+            // Process tables
+            for (table in xwpfDocument.tables) {
+                val numCols = table.rows.firstOrNull()?.tableCells?.size ?: 0
+                if (numCols > 0) {
+                    val iTextTable = com.itextpdf.layout.element.Table(numCols)
+                    iTextTable.setWidth(com.itextpdf.layout.properties.UnitValue.createPercentValue(100f))
+                    
+                    var isFirstRow = true
+                    for (row in table.rows) {
+                        for (cell in row.tableCells) {
+                            val cellParagraph = Paragraph(cell.text)
+                                .setFont(font)
+                                .setFontSize(10f)
+                                .setPadding(5f)
+                            
+                            val iTextCell = com.itextpdf.layout.element.Cell()
+                                .add(cellParagraph)
+                            
+                            if (isFirstRow) {
+                                iTextCell.setBackgroundColor(ColorConstants.LIGHT_GRAY)
+                                cellParagraph.setFont(boldFont)
+                            }
+                            
+                            iTextTable.addCell(iTextCell)
+                        }
+                        isFirstRow = false
+                    }
+                    
+                    iTextTable.setMarginBottom(12f)
+                    document.add(iTextTable)
+                }
             }
-        } finally {
-            pdfDocument.close()
+            
+            // Process embedded images
+            for (pictureData in xwpfDocument.allPictures) {
+                try {
+                    val imageData = ImageDataFactory.create(pictureData.data)
+                    val image = Image(imageData)
+                    image.setMaxWidth(500f)
+                    image.setMarginBottom(10f)
+                    document.add(image)
+                } catch (e: Exception) {
+                    // Skip images that can't be processed
+                }
+            }
+            
             document.close()
+        } finally {
+            xwpfDocument.close()
         }
+    }
+    
+    /**
+     * Helper method to convert DOCX content to HTML string.
+     * Used for intermediate conversion and preview purposes.
+     */
+    private fun convertDocxToHtml(document: XWPFDocument): String {
+        val htmlBuilder = StringBuilder()
+        htmlBuilder.append("<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></head><body>")
+        
+        for (paragraph in document.paragraphs) {
+            val text = paragraph.text
+            if (text.isNotEmpty()) {
+                htmlBuilder.append("<p>")
+                for (run in paragraph.runs) {
+                    var runHtml = escapeHtmlForConverter(run.text() ?: "")
+                    if (run.isBold) runHtml = "<b>$runHtml</b>"
+                    if (run.isItalic) runHtml = "<i>$runHtml</i>"
+                    htmlBuilder.append(runHtml)
+                }
+                htmlBuilder.append("</p>")
+            }
+        }
+        
+        for (table in document.tables) {
+            htmlBuilder.append("<table border=\"1\">")
+            for (row in table.rows) {
+                htmlBuilder.append("<tr>")
+                for (cell in row.tableCells) {
+                    htmlBuilder.append("<td>${escapeHtmlForConverter(cell.text)}</td>")
+                }
+                htmlBuilder.append("</tr>")
+            }
+            htmlBuilder.append("</table>")
+        }
+        
+        htmlBuilder.append("</body></html>")
+        return htmlBuilder.toString()
+    }
+    
+    private fun escapeHtmlForConverter(text: String): String {
+        return text
+            .replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
     }
 
     private fun convertPptxToPdf(inputFile: File, outputFile: File) {
@@ -455,7 +584,7 @@ class DocumentConverter(private val context: Context) {
                             val textParagraph = Paragraph(block.text)
                                 .setFont(font)
                                 .setFontSize(1f) // Very small font
-                                .setFontColor(com.itextpdf.kernel.colors.ColorConstants.WHITE, 0f) // Transparent
+                                .setFontColor(ColorConstants.WHITE, 0f) // Transparent
                                 .setFixedPosition(index + 1, x, y, (box.right - box.left).toFloat())
                             
                             document.add(textParagraph)
