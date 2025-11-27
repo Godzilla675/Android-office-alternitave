@@ -13,7 +13,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.officesuite.app.R
 import com.officesuite.app.databinding.FragmentDocxViewerBinding
+import com.officesuite.app.utils.ErrorHandler
 import com.officesuite.app.utils.FileUtils
+import com.officesuite.app.utils.Result
 import com.officesuite.app.utils.ShareUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -25,6 +27,14 @@ import org.apache.poi.xwpf.usermodel.XWPFPictureData
 import java.io.File
 import java.io.FileInputStream
 
+/**
+ * Fragment for viewing DOCX (Word) documents.
+ * Features:
+ * - Text extraction with formatting preservation
+ * - Table content display
+ * - Share and copy functionality
+ * - Error handling with user-friendly messages
+ */
 class DocxViewerFragment : Fragment() {
 
     private var _binding: FragmentDocxViewerBinding? = null
@@ -70,6 +80,7 @@ class DocxViewerFragment : Fragment() {
     private fun setupToolbar() {
         binding.toolbar.apply {
             setNavigationOnClickListener {
+                findNavController().navigateUp()
                 @Suppress("DEPRECATION")
                 requireActivity().onBackPressed()
                 requireActivity().onBackPressedDispatcher.onBackPressed()
@@ -104,11 +115,18 @@ class DocxViewerFragment : Fragment() {
             binding.progressBar.visibility = View.VISIBLE
             
             lifecycleScope.launch {
-                try {
-                    cachedFile = withContext(Dispatchers.IO) {
+                val result = Result.runCatchingSuspend {
+                    val file = withContext(Dispatchers.IO) {
                         FileUtils.copyToCache(requireContext(), uri)
                     }
                     
+                    if (file != null) {
+                        val content = withContext(Dispatchers.IO) {
+                            extractDocxContent(file)
+                        }
+                        Pair(file, content)
+                    } else {
+                        throw IllegalStateException("Could not read file")
                     cachedFile?.let { file ->
                         val htmlContent = withContext(Dispatchers.IO) {
                             convertDocxToHtml(file)
@@ -124,9 +142,16 @@ class DocxViewerFragment : Fragment() {
                         )
                         binding.progressBar.visibility = View.GONE
                     }
-                } catch (e: Exception) {
+                }
+                
+                result.onSuccess { (file, content) ->
+                    cachedFile = file
+                    binding.toolbar.title = file.name
+                    binding.textContent.text = content
                     binding.progressBar.visibility = View.GONE
-                    Toast.makeText(context, "Failed to load document: ${e.message}", Toast.LENGTH_SHORT).show()
+                }.onError { error ->
+                    binding.progressBar.visibility = View.GONE
+                    ErrorHandler.showErrorToast(requireContext(), error.exception)
                 }
             }
         }
@@ -223,6 +248,8 @@ class DocxViewerFragment : Fragment() {
             
             document.close()
         } catch (e: Exception) {
+            ErrorHandler.logError("DocxViewer", "Error reading document", e)
+            builder.append("Error reading document: ${ErrorHandler.getErrorMessage(e)}")
             e.printStackTrace()
             htmlBuilder.append("<p style=\"color: red;\">Error reading document: ${escapeHtml(e.message ?: "Unknown error")}</p>")
         }

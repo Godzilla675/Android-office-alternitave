@@ -8,9 +8,12 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import com.officesuite.app.R
 import com.officesuite.app.databinding.FragmentMarkdownBinding
+import com.officesuite.app.utils.ErrorHandler
 import com.officesuite.app.utils.FileUtils
+import com.officesuite.app.utils.Result
 import com.officesuite.app.utils.ShareUtils
 import io.noties.markwon.Markwon
 import io.noties.markwon.ext.tables.TablePlugin
@@ -22,6 +25,14 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 
+/**
+ * Fragment for editing and viewing Markdown documents.
+ * Features:
+ * - WYSIWYG editing with markdown shortcuts
+ * - Real-time preview rendering
+ * - File save/share functionality
+ * - Enhanced error handling
+ */
 class MarkdownFragment : Fragment() {
 
     private var _binding: FragmentMarkdownBinding? = null
@@ -74,6 +85,7 @@ class MarkdownFragment : Fragment() {
     private fun setupToolbar() {
         binding.toolbar.apply {
             setNavigationOnClickListener {
+                findNavController().navigateUp()
                 @Suppress("DEPRECATION")
                 requireActivity().onBackPressed()
             }
@@ -144,25 +156,31 @@ class MarkdownFragment : Fragment() {
             binding.progressBar.visibility = View.VISIBLE
             
             lifecycleScope.launch {
-                try {
-                    cachedFile = withContext(Dispatchers.IO) {
+                val result = Result.runCatchingSuspend {
+                    val file = withContext(Dispatchers.IO) {
                         FileUtils.copyToCache(requireContext(), uri)
                     }
                     
-                    cachedFile?.let { file ->
+                    if (file != null) {
                         val content = withContext(Dispatchers.IO) {
                             file.readText()
                         }
-                        
-                        binding.toolbar.title = file.name
-                        binding.editContent.setText(content)
-                        renderPreview(content)
-                        binding.progressBar.visibility = View.GONE
-                        showPreviewMode()
+                        Pair(file, content)
+                    } else {
+                        throw IllegalStateException("Could not read file")
                     }
-                } catch (e: Exception) {
+                }
+                
+                result.onSuccess { (file, content) ->
+                    cachedFile = file
+                    binding.toolbar.title = file.name
+                    binding.editContent.setText(content)
+                    renderPreview(content)
                     binding.progressBar.visibility = View.GONE
-                    Toast.makeText(context, "Failed to load file: ${e.message}", Toast.LENGTH_SHORT).show()
+                    showPreviewMode()
+                }.onError { error ->
+                    binding.progressBar.visibility = View.GONE
+                    ErrorHandler.showErrorToast(requireContext(), error.exception)
                 }
             }
         }
@@ -202,7 +220,7 @@ class MarkdownFragment : Fragment() {
         val content = binding.editContent.text.toString()
         
         lifecycleScope.launch {
-            try {
+            val result = Result.runCatchingSuspend {
                 if (cachedFile == null) {
                     // Create new file
                     cachedFile = File(FileUtils.getOutputDirectory(requireContext()), "document.md")
@@ -213,10 +231,12 @@ class MarkdownFragment : Fragment() {
                         out.write(content.toByteArray())
                     }
                 }
-                
+            }
+            
+            result.onSuccess {
                 Toast.makeText(context, "File saved", Toast.LENGTH_SHORT).show()
-            } catch (e: Exception) {
-                Toast.makeText(context, "Failed to save: ${e.message}", Toast.LENGTH_SHORT).show()
+            }.onError { error ->
+                ErrorHandler.showErrorToast(requireContext(), error.exception)
             }
         }
     }
