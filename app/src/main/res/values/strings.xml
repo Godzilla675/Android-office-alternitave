@@ -37,23 +37,143 @@
     <string name="save_as_pdf">Save as PDF</string>
     <string name="run_ocr">Run OCR</string>
     
+    <!-- OCR -->
+    <string name="extracting_text">Extracting text...</string>
+    <string name="text_extracted">Text Extracted</string>
+    <string name="copy_text">Copy Text</string>
+    <string name="ocr_language">OCR Language</string>
+    <string name="select_language">Select Language</string>
+    <string name="batch_ocr">Batch OCR</string>
+    <string name="batch_ocr_processing">Processing %1$d of %2$d pages...</string>
+    <string name="batch_ocr_complete">Batch OCR complete: %1$d pages processed</string>
+    <string name="ocr_to_docx">Export as DOCX</string>
+    
+    <!-- Scanner Modes -->
+    <string name="scan_mode_document">Document</string>
+    <string name="scan_mode_qr">QR Code</string>
+    <string name="scan_mode_barcode">Barcode</string>
+    <string name="scan_mode_business_card">Business Card</string>
+    <string name="scan_mode_id">ID Document</string>
+    <string name="scan_mode_receipt">Receipt</string>
+    
+    <!-- QR/Barcode Scanner -->
+    <string name="qr_code_detected">QR Code Detected</string>
+    <string name="barcode_detected">Barcode Detected</string>
+    <string name="no_code_found">No code found</string>
+    <string name="scan_qr_barcode">Scan QR/Barcode</string>
+    <string name="code_type">Type: %1$s</string>
+    <string name="code_content">Content: %1$s</string>
+    <string name="open_url">Open URL</string>
+    <string name="add_contact">Add Contact</string>
+    <string name="copy_content">Copy Content</string>
+    
+    <!-- Business Card Scanner -->
+    <string name="business_card_scan">Scan Business Card</string>
+    <string name="extracted_contact">Extracted Contact Information</string>
+    <string name="contact_name">Name</string>
+    <string name="contact_title">Title</string>
+    <string name="contact_company">Company</string>
+    <string name="contact_email">Email</string>
+    <string name="contact_phone">Phone</string>
+    <string name="contact_address">Address</string>
+    <string name="save_to_contacts">Save to Contacts</string>
+    
+    <!-- ID Scanner -->
+    <string name="scan_id_document">Scan ID Document</string>
+    <string name="document_type">Document Type</string>
+    <string name="first_name">First Name</string>
+    <string name="last_name">Last Name</string>
+    <string name="date_of_birth">Date of Birth</string>
+    <string name="expiration_date">Expiration Date</string>
+    <string name="document_number">Document Number</string>
+    <string name="nationality">Nationality</string>
+    
+    <!-- Receipt Scanner -->
+    <string name="scan_receipt">Scan Receipt</string>
+    <string name="merchant">Merchant</string>
+    <string name="receipt_date">Date</string>
+    <string name="subtotal">Subtotal</string>
+    <string name="tax">Tax</string>
+    <string name="total">Total</string>
+    <string name="payment_method">Payment Method</string>
+    <string name="expense_category">Category</string>
+    <string name="line_items">Items</string>
+    
     <!-- Converter -->
     <string name="select_file">Select File</string>
     <string name="select_output_format">Select Output Format</string>
     <string name="convert_file">Convert File</string>
     <string name="conversion_complete">Conversion Complete</string>
     <string name="conversion_failed">Conversion Failed</string>
+    <string name="images_to_pdf">Images to PDF</string>
+    <string name="pdf_to_images">PDF to Images</string>
+    <string name="html_to_pdf">HTML to PDF</string>
+    <string name="batch_convert">Batch Convert</string>
+    <string name="select_images">Select Images</string>
+    <string name="image_format">Image Format</string>
+    <string name="image_quality">Image Quality</string>
+    
+    <!-- Templates -->
+    <string name="templates">Templates</string>
+    <string name="create_from_template">Create from Template</string>
+    <string name="all_templates">All Templates</string>
+    <string name="recent_templates">Recently Used</string>
+    <string name="custom_templates">My Templates</string>
+    <string name="save_as_template">Save as Template</string>
+    <string name="template_name">Template Name</string>
+    <string name="template_description">Description</string>
+    <string name="template_category">Category</string>
+    <string name="fill_template">Fill Template</string>
+    <string name="preview_template">Preview</string>
+    
+    <!-- Template Categories -->
+    <string name="category_resume">Resume &amp; CV</string>
+    <string name="category_letter">Letters</string>
+    <string name="category_invoice">Invoice &amp; Billing</string>
+    <string name="category_report">Reports</string>
+    <string name="category_presentation">Presentations</string>
+    <string name="category_spreadsheet">Spreadsheets</string>
+    <string name="category_custom">Custom</string>
+    
+    <!-- Collaboration -->
+    <string name="comments">Comments</string>
+    <string name="add_comment">Add Comment</string>
+    <string name="reply">Reply</string>
+    <string name="resolve">Resolve</string>
+    <string name="resolved">Resolved</string>
+    <string name="no_comments">No comments yet</string>
+    <string name="delete_comment">Delete Comment</string>
+    <string name="edit_comment">Edit Comment</string>
+    
+    <!-- Version History -->
+    <string name="version_history">Version History</string>
+    <string name="current_version">Current Version</string>
+    <string name="previous_versions">Previous Versions</string>
+    <string name="restore_version">Restore This Version</string>
+    <string name="version_saved">Version saved</string>
+    <string name="save_version">Save Version</string>
+    <string name="version_name">Version Name</string>
+    <string name="version_description">Description</string>
+    
+    <!-- Sharing -->
+    <string name="share_link">Share Link</string>
+    <string name="create_share_link">Create Share Link</string>
+    <string name="share_permissions">Permissions</string>
+    <string name="can_view">Can View</string>
+    <string name="can_edit">Can Edit</string>
+    <string name="can_comment">Can Comment</string>
+    <string name="can_download">Can Download</string>
+    <string name="expires_in">Expires In</string>
+    <string name="set_password">Set Password</string>
+    <string name="copy_link">Copy Link</string>
+    <string name="link_copied">Link copied to clipboard</string>
+    <string name="deactivate_link">Deactivate Link</string>
     
     <!-- Viewer -->
     <string name="page_of">Page %1$d of %2$d</string>
     <string name="loading">Loading...</string>
     <string name="error_loading">Error loading file</string>
     <string name="no_file_selected">No file selected</string>
-    
-    <!-- OCR -->
-    <string name="extracting_text">Extracting text...</string>
-    <string name="text_extracted">Text Extracted</string>
-    <string name="copy_text">Copy Text</string>
     
     <!-- Markdown -->
     <string name="edit_mode">Edit</string>
@@ -69,4 +189,6 @@
     <string name="error_file_not_found">File not found</string>
     <string name="error_unsupported_format">Unsupported file format</string>
     <string name="error_conversion">Error during conversion</string>
+    <string name="error_ocr_failed">OCR processing failed</string>
+    <string name="error_scan_failed">Scanning failed</string>
 </resources>

@@ -79,6 +79,9 @@ dependencies {
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3'
 
+    // Gson for JSON serialization
+    implementation 'com.google.code.gson:gson:2.10.1'
+
     // PDF Viewer - using native Android PdfRenderer (no external dependency needed)
     // Custom implementation in PdfViewerFragment
 
@@ -87,8 +90,15 @@ dependencies {
     implementation 'org.apache.poi:poi-ooxml:5.2.4'
     implementation 'org.apache.poi:poi-scratchpad:5.2.4'
 
-    // Google ML Kit for OCR
+    // Google ML Kit for OCR - Multi-language support
     implementation 'com.google.mlkit:text-recognition:16.0.0'
+    implementation 'com.google.mlkit:text-recognition-chinese:16.0.0'
+    implementation 'com.google.mlkit:text-recognition-japanese:16.0.0'
+    implementation 'com.google.mlkit:text-recognition-korean:16.0.0'
+    implementation 'com.google.mlkit:text-recognition-devanagari:16.0.0'
+    
+    // Google ML Kit for Barcode/QR Scanning
+    implementation 'com.google.mlkit:barcode-scanning:17.2.0'
 
     // CameraX for document scanning
     implementation 'androidx.camera:camera-core:1.3.0'

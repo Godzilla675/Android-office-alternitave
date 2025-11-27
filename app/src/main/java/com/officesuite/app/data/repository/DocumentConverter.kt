@@ -499,4 +499,379 @@ class DocumentConverter(private val context: Context) {
             false
         }
     }
+
+    // ============== ADVANCED CONVERSIONS ==============
+
+    /**
+     * Convert multiple images to a single PDF file
+     * 
+     * @param imageFiles List of image files to convert
+     * @param outputFile The output PDF file
+     * @param pageSize Page size for the PDF (default: A4)
+     * @param fitToPage Whether to fit images to the page size
+     * @return ConversionResult with success status
+     */
+    suspend fun convertImagesToPdf(
+        imageFiles: List<File>,
+        outputFile: File,
+        pageSize: PageSize = PageSize.A4,
+        fitToPage: Boolean = true
+    ): ConversionResult = withContext(Dispatchers.IO) {
+        try {
+            val pdfWriter = PdfWriter(outputFile)
+            val pdfDoc = ITextPdfDocument(pdfWriter)
+            val document = Document(pdfDoc, pageSize)
+            
+            imageFiles.forEach { imageFile ->
+                try {
+                    val imageData = ImageDataFactory.create(imageFile.absolutePath)
+                    val image = Image(imageData)
+                    
+                    if (fitToPage) {
+                        // Fit image to page while maintaining aspect ratio
+                        val pageWidth = pageSize.width - 72 // 1 inch margins
+                        val pageHeight = pageSize.height - 72
+                        image.scaleToFit(pageWidth, pageHeight)
+                    }
+                    
+                    document.add(image)
+                    
+                    // Add page break after each image except the last
+                    if (imageFile != imageFiles.last()) {
+                        document.add(com.itextpdf.layout.element.AreaBreak())
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    // Continue with next image
+                }
+            }
+            
+            document.close()
+            
+            ConversionResult(
+                success = true,
+                outputPath = outputFile.absolutePath
+            )
+        } catch (e: Exception) {
+            e.printStackTrace()
+            ConversionResult(
+                success = false,
+                errorMessage = "Failed to convert images to PDF: ${e.message}"
+            )
+        }
+    }
+
+    /**
+     * Convert PDF pages to images
+     * 
+     * @param pdfFile The input PDF file
+     * @param outputDir Directory to save images
+     * @param format Image format (PNG or JPEG)
+     * @param quality Image quality (1-100) for JPEG
+     * @param scale Scale factor for rendering (1.0 = original size)
+     * @return List of generated image files
+     */
+    suspend fun convertPdfToImages(
+        pdfFile: File,
+        outputDir: File,
+        format: ImageFormat = ImageFormat.PNG,
+        quality: Int = 90,
+        scale: Float = 2.0f
+    ): PdfToImageResult = withContext(Dispatchers.IO) {
+        val outputFiles = mutableListOf<File>()
+        
+        try {
+            if (!outputDir.exists()) {
+                outputDir.mkdirs()
+            }
+            
+            val descriptor = ParcelFileDescriptor.open(pdfFile, ParcelFileDescriptor.MODE_READ_ONLY)
+            val renderer = PdfRenderer(descriptor)
+            
+            try {
+                for (i in 0 until renderer.pageCount) {
+                    val page = renderer.openPage(i)
+                    
+                    // Calculate scaled dimensions
+                    val width = (page.width * scale).toInt()
+                    val height = (page.height * scale).toInt()
+                    
+                    val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+                    val canvas = Canvas(bitmap)
+                    canvas.drawColor(Color.WHITE)
+                    
+                    // Render with matrix for scaling
+                    val matrix = android.graphics.Matrix()
+                    matrix.postScale(scale, scale)
+                    
+                    page.render(bitmap, null, matrix, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+                    
+                    // Save image
+                    val extension = if (format == ImageFormat.PNG) "png" else "jpg"
+                    val outputFile = File(outputDir, "${pdfFile.nameWithoutExtension}_page_${i + 1}.$extension")
+                    
+                    FileOutputStream(outputFile).use { out ->
+                        if (format == ImageFormat.PNG) {
+                            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+                        } else {
+                            bitmap.compress(Bitmap.CompressFormat.JPEG, quality, out)
+                        }
+                    }
+                    
+                    outputFiles.add(outputFile)
+                    
+                    page.close()
+                    bitmap.recycle()
+                }
+            } finally {
+                renderer.close()
+                descriptor.close()
+            }
+            
+            PdfToImageResult(
+                success = true,
+                outputFiles = outputFiles,
+                pageCount = outputFiles.size
+            )
+        } catch (e: Exception) {
+            e.printStackTrace()
+            PdfToImageResult(
+                success = false,
+                outputFiles = outputFiles,
+                pageCount = 0,
+                error = e.message
+            )
+        }
+    }
+
+    /**
+     * Convert HTML content to PDF
+     * 
+     * @param htmlContent The HTML content to convert
+     * @param outputFile The output PDF file
+     * @param baseUrl Base URL for resolving relative paths in HTML
+     * @return ConversionResult with success status
+     */
+    suspend fun convertHtmlToPdf(
+        htmlContent: String,
+        outputFile: File,
+        baseUrl: String? = null
+    ): ConversionResult = withContext(Dispatchers.IO) {
+        try {
+            val pdfWriter = PdfWriter(outputFile)
+            val pdfDoc = ITextPdfDocument(pdfWriter)
+            val document = Document(pdfDoc)
+            
+            // Parse HTML and convert to PDF elements
+            val cleanedHtml = cleanHtmlForPdf(htmlContent)
+            val lines = parseHtmlToText(cleanedHtml)
+            
+            val font = PdfFontFactory.createFont(StandardFonts.HELVETICA)
+            val boldFont = PdfFontFactory.createFont(StandardFonts.HELVETICA_BOLD)
+            
+            for (line in lines) {
+                val paragraph = when {
+                    line.startsWith("# ") -> {
+                        Paragraph(line.substring(2))
+                            .setFont(boldFont)
+                            .setFontSize(24f)
+                    }
+                    line.startsWith("## ") -> {
+                        Paragraph(line.substring(3))
+                            .setFont(boldFont)
+                            .setFontSize(18f)
+                    }
+                    line.startsWith("### ") -> {
+                        Paragraph(line.substring(4))
+                            .setFont(boldFont)
+                            .setFontSize(14f)
+                    }
+                    line.isBlank() -> {
+                        Paragraph(" ").setFontSize(8f)
+                    }
+                    else -> {
+                        Paragraph(line).setFont(font).setFontSize(12f)
+                    }
+                }
+                document.add(paragraph)
+            }
+            
+            document.close()
+            
+            ConversionResult(
+                success = true,
+                outputPath = outputFile.absolutePath
+            )
+        } catch (e: Exception) {
+            e.printStackTrace()
+            ConversionResult(
+                success = false,
+                errorMessage = "Failed to convert HTML to PDF: ${e.message}"
+            )
+        }
+    }
+
+    /**
+     * Convert OCR result to editable DOCX format
+     * 
+     * @param ocrResult The OCR result containing extracted text
+     * @param outputFile The output DOCX file
+     * @return ConversionResult with success status
+     */
+    suspend fun convertOcrToDocx(
+        ocrResult: com.officesuite.app.ocr.OcrResult,
+        outputFile: File
+    ): ConversionResult = withContext(Dispatchers.IO) {
+        try {
+            val document = XWPFDocument()
+            
+            // Add title
+            val titleParagraph = document.createParagraph()
+            val titleRun = titleParagraph.createRun()
+            titleRun.setText("OCR Extracted Text")
+            titleRun.isBold = true
+            titleRun.fontSize = 16
+            
+            // Add blank line
+            document.createParagraph()
+            
+            // Add each text block as a paragraph
+            for (block in ocrResult.blocks) {
+                val paragraph = document.createParagraph()
+                val run = paragraph.createRun()
+                run.setText(block.text)
+                
+                // Add confidence note if low
+                if (block.confidence < 0.8f) {
+                    val noteRun = paragraph.createRun()
+                    noteRun.setText(" [Confidence: ${(block.confidence * 100).toInt()}%]")
+                    noteRun.isItalic = true
+                    noteRun.fontSize = 8
+                }
+            }
+            
+            // Write to file
+            FileOutputStream(outputFile).use { out ->
+                document.write(out)
+            }
+            document.close()
+            
+            ConversionResult(
+                success = true,
+                outputPath = outputFile.absolutePath
+            )
+        } catch (e: Exception) {
+            e.printStackTrace()
+            ConversionResult(
+                success = false,
+                errorMessage = "Failed to convert OCR to DOCX: ${e.message}"
+            )
+        }
+    }
+
+    /**
+     * Batch convert multiple files
+     * 
+     * @param inputFiles List of input files
+     * @param targetFormat Target format for conversion
+     * @param outputDir Output directory for converted files
+     * @param onProgress Progress callback (0.0 to 1.0)
+     * @return List of conversion results
+     */
+    suspend fun batchConvert(
+        inputFiles: List<File>,
+        targetFormat: DocumentType,
+        outputDir: File,
+        onProgress: ((Float) -> Unit)? = null
+    ): List<ConversionResult> = withContext(Dispatchers.IO) {
+        val results = mutableListOf<ConversionResult>()
+        
+        if (!outputDir.exists()) {
+            outputDir.mkdirs()
+        }
+        
+        inputFiles.forEachIndexed { index, inputFile ->
+            val sourceFormat = DocumentType.fromExtension(inputFile.extension)
+            val outputFile = File(outputDir, "${inputFile.nameWithoutExtension}.${targetFormat.extension}")
+            
+            val options = ConversionOptions(
+                sourceFormat = sourceFormat,
+                targetFormat = targetFormat
+            )
+            
+            val result = try {
+                convert(inputFile, options)
+            } catch (e: Exception) {
+                ConversionResult(
+                    success = false,
+                    errorMessage = "Failed to convert ${inputFile.name}: ${e.message}"
+                )
+            }
+            
+            results.add(result)
+            onProgress?.invoke((index + 1).toFloat() / inputFiles.size)
+        }
+        
+        results
+    }
+
+    // Helper functions for HTML conversion
+    private fun cleanHtmlForPdf(html: String): String {
+        return html
+            .replace(Regex("<script[^>]*>.*?</script>", RegexOption.DOT_MATCHES_ALL), "")
+            .replace(Regex("<style[^>]*>.*?</style>", RegexOption.DOT_MATCHES_ALL), "")
+            .replace(Regex("<!--.*?-->", RegexOption.DOT_MATCHES_ALL), "")
+    }
+
+    private fun parseHtmlToText(html: String): List<String> {
+        val lines = mutableListOf<String>()
+        
+        // Convert HTML to simplified markdown-like format
+        var text = html
+            .replace(Regex("<h1[^>]*>"), "# ")
+            .replace("</h1>", "\n")
+            .replace(Regex("<h2[^>]*>"), "## ")
+            .replace("</h2>", "\n")
+            .replace(Regex("<h3[^>]*>"), "### ")
+            .replace("</h3>", "\n")
+            .replace(Regex("<p[^>]*>"), "")
+            .replace("</p>", "\n\n")
+            .replace(Regex("<br\\s*/?>"), "\n")
+            .replace(Regex("<li[^>]*>"), "• ")
+            .replace("</li>", "\n")
+            .replace(Regex("<[^>]+>"), "") // Remove remaining tags
+            .replace("&nbsp;", " ")
+            .replace("&amp;", "&")
+            .replace("&lt;", "<")
+            .replace("&gt;", ">")
+            .replace("&quot;", "\"")
+        
+        // Split into lines and clean up
+        text.split("\n").forEach { line ->
+            val trimmed = line.trim()
+            if (trimmed.isNotEmpty() || lines.isNotEmpty()) {
+                lines.add(trimmed)
+            }
+        }
+        
+        return lines
+    }
 }
+
+/**
+ * Image format for PDF to Image conversion
+ */
+enum class ImageFormat {
+    PNG,
+    JPEG
+}
+
+/**
+ * Result of PDF to Image conversion
+ */
+data class PdfToImageResult(
+    val success: Boolean,
+    val outputFiles: List<File>,
+    val pageCount: Int,
+    val error: String? = null
+)
