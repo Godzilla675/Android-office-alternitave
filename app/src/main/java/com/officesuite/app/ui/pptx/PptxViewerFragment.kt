@@ -11,6 +11,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
 import com.officesuite.app.R
@@ -59,11 +60,15 @@ class PptxViewerFragment : Fragment() {
     private fun setupToolbar() {
         binding.toolbar.apply {
             setNavigationOnClickListener {
-                requireActivity().onBackPressed()
+                requireActivity().onBackPressedDispatcher.onBackPressed()
             }
             inflateMenu(R.menu.menu_pptx_viewer)
             setOnMenuItemClickListener { item ->
                 when (item.itemId) {
+                    R.id.action_edit -> {
+                        openEditor()
+                        true
+                    }
                     R.id.action_share -> {
                         shareDocument()
                         true
@@ -229,6 +234,15 @@ class PptxViewerFragment : Fragment() {
 
     private fun updateSlideInfo() {
         binding.textSlideInfo.text = "Slide ${currentSlide + 1} of ${slideImages.size}"
+    }
+
+    private fun openEditor() {
+        fileUri?.let { uri ->
+            val bundle = Bundle().apply {
+                putString("file_uri", uri.toString())
+            }
+            findNavController().navigate(R.id.pptxEditorFragment, bundle)
+        }
     }
 
     private fun shareDocument() {

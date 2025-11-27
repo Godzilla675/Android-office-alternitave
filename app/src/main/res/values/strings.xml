@@ -69,4 +69,52 @@
     <string name="error_file_not_found">File not found</string>
     <string name="error_unsupported_format">Unsupported file format</string>
     <string name="error_conversion">Error during conversion</string>
+    
+    <!-- Editor -->
+    <string name="pdf_editor">PDF Editor</string>
+    <string name="document_editor">Document Editor</string>
+    <string name="presentation_editor">Presentation Editor</string>
+    <string name="edit_document">Edit Document</string>
+    <string name="clear_annotations">Clear Annotations</string>
+    <string name="save_as">Save As</string>
+    <string name="export_to_pdf">Export to PDF</string>
+    <string name="add_slide">Add Slide</string>
+    <string name="slide_of">Slide %1$d of %2$d</string>
+    
+    <!-- Editor Tools -->
+    <string name="tool_pen">Pen</string>
+    <string name="tool_highlighter">Highlighter</string>
+    <string name="tool_eraser">Eraser</string>
+    <string name="tool_text">Add Text</string>
+    <string name="tool_rectangle">Rectangle</string>
+    <string name="tool_circle">Circle</string>
+    <string name="tool_arrow">Arrow</string>
+    <string name="tool_line">Line</string>
+    <string name="tool_image">Insert Image</string>
+    <string name="tool_color">Color</string>
+    <string name="tool_stroke_width">Stroke Width</string>
+    <string name="tool_undo">Undo</string>
+    <string name="tool_redo">Redo</string>
+    
+    <!-- Text Formatting -->
+    <string name="format_bold">Bold</string>
+    <string name="format_italic">Italic</string>
+    <string name="format_underline">Underline</string>
+    <string name="format_align_left">Align Left</string>
+    <string name="format_align_center">Align Center</string>
+    <string name="format_align_right">Align Right</string>
+    <string name="format_text_color">Text Color</string>
+    <string name="format_highlight">Highlight</string>
+    <string name="format_font_size">Font Size</string>
+    <string name="format_bullet_list">Bullet List</string>
+    <string name="format_numbered_list">Numbered List</string>
+    
+    <!-- Dialogs -->
+    <string name="select_color">Select Color</string>
+    <string name="enter_text">Enter Text</string>
+    <string name="stroke_width">Stroke Width</string>
+    <string name="font_size">Font Size</string>
+    <string name="annotations_saved">Annotations saved</string>
+    <string name="document_saved">Document saved</string>
+    <string name="presentation_saved">Presentation saved</string>
 </resources>
