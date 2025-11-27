@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
+import com.google.android.material.tabs.TabLayoutMediator
 import com.officesuite.app.R
 import com.officesuite.app.databinding.FragmentOnboardingBinding
 import com.officesuite.app.databinding.ItemOnboardingPageBinding
@@ -69,7 +70,9 @@ class OnboardingFragment : Fragment() {
         binding.viewPager.adapter = onboardingAdapter
         
         // Setup page indicator
-        binding.pageIndicator.setViewPager2(binding.viewPager)
+        TabLayoutMediator(binding.pageIndicator, binding.viewPager) { _, _ ->
+            // Empty - we just need the tabs as indicators
+        }.attach()
         
         binding.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
