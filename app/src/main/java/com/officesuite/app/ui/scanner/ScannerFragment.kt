@@ -207,16 +207,27 @@ class ScannerFragment : Fragment() {
         }
     }
 
+    /**
+     * Detects and crops document borders from the captured image.
+     * 
+     * Note: This is a simplified implementation that applies a basic margin crop.
+     * For production use, consider integrating OpenCV or ML-based edge detection
+     * for more accurate document boundary detection.
+     * 
+     * Current limitations:
+     * - Does not perform actual edge detection
+     * - Only applies a simple 2% margin crop
+     * - May not work well with skewed or rotated documents
+     * 
+     * @param bitmap The input bitmap to process
+     * @return The cropped bitmap with margins removed
+     */
     private fun detectAndCropBorders(bitmap: Bitmap): Bitmap {
-        // Simplified border detection - in a real implementation,
-        // this would use edge detection algorithms
-        // For now, we'll just return the original bitmap
-        // A full implementation would use OpenCV or similar
-        
         val width = bitmap.width
         val height = bitmap.height
         
-        // Simple auto-crop based on edge analysis
+        // Apply a 2% margin crop as a basic border removal
+        // This is a placeholder for proper edge detection
         val margin = (minOf(width, height) * 0.02).toInt()
         
         return try {
@@ -326,11 +337,22 @@ class ScannerFragment : Fragment() {
         binding.textPageCount.text = "${scannedPages.size} pages"
     }
 
+    override fun onPause() {
+        super.onPause()
+        // Clear bitmap preview to reduce memory usage when fragment is paused
+        _binding?.imagePreview?.setImageBitmap(null)
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         cameraExecutor.shutdown()
         ocrManager.close()
-        scannedPages.forEach { it.recycle() }
+        // Recycle all bitmaps to free memory
+        scannedPages.forEach { bitmap ->
+            if (!bitmap.isRecycled) {
+                bitmap.recycle()
+            }
+        }
         scannedPages.clear()
         _binding = null
     }

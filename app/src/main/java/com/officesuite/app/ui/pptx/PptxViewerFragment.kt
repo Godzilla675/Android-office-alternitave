@@ -135,6 +135,23 @@ class PptxViewerFragment : Fragment() {
         }
     }
 
+    /**
+     * Loads slides from a PPTX file and converts them to bitmaps for display.
+     * 
+     * Note: This is a simplified implementation that displays basic slide information
+     * rather than fully rendering the slide content. Full PowerPoint rendering would
+     * require a more complex implementation using graphics rendering for each shape,
+     * text box, image, and formatting element.
+     * 
+     * Current limitations:
+     * - Renders placeholder text instead of actual slide content
+     * - Does not display images, charts, or complex shapes
+     * - Does not preserve formatting or animations
+     * 
+     * For production use, consider using a dedicated presentation rendering library.
+     * 
+     * @param file The PPTX file to load
+     */
     private fun loadSlides(file: File) {
         slideImages.clear()
         
@@ -151,20 +168,52 @@ class PptxViewerFragment : Fragment() {
                 val canvas = Canvas(bitmap)
                 canvas.drawColor(Color.WHITE)
                 
-                // Draw slide content (simplified - real implementation would render each shape)
-                val paint = android.graphics.Paint().apply {
+                // Extract text content from the slide
+                val textPaint = android.graphics.Paint().apply {
+                    color = Color.BLACK
+                    textSize = 32f
+                    isAntiAlias = true
+                }
+                
+                val titlePaint = android.graphics.Paint().apply {
                     color = Color.BLACK
                     textSize = 48f
                     textAlign = android.graphics.Paint.Align.CENTER
+                    isAntiAlias = true
                 }
                 
                 val slideNumber = slideImages.size + 1
-                canvas.drawText(
-                    "Slide $slideNumber",
-                    dimension.width / 2f,
-                    dimension.height / 2f,
-                    paint
-                )
+                
+                // Try to extract slide title and content
+                var yPosition = 80f
+                var hasContent = false
+                
+                for (shape in slide.shapes) {
+                    if (shape is org.apache.poi.xslf.usermodel.XSLFTextShape) {
+                        val text = shape.text
+                        if (text.isNotBlank()) {
+                            hasContent = true
+                            // Draw first text as title, rest as content
+                            if (yPosition == 80f) {
+                                canvas.drawText(text.take(50), dimension.width / 2f, yPosition, titlePaint)
+                            } else {
+                                canvas.drawText(text.take(60), 40f, yPosition, textPaint)
+                            }
+                            yPosition += 50f
+                            if (yPosition > dimension.height - 100) break
+                        }
+                    }
+                }
+                
+                // If no content found, show placeholder
+                if (!hasContent) {
+                    canvas.drawText(
+                        "Slide $slideNumber",
+                        dimension.width / 2f,
+                        dimension.height / 2f,
+                        titlePaint
+                    )
+                }
                 
                 slideImages.add(bitmap)
             }
