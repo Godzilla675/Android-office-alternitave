@@ -9,50 +9,8 @@
     <fragment
         android:id="@+id/homeFragment"
         android:name="com.officesuite.app.ui.home.HomeFragment"
-        android:label="@string/nav_home"
-        tools:layout="@layout/fragment_home">
-        <action
-            android:id="@+id/action_home_to_pdfViewer"
-            app:destination="@id/pdfViewerFragment" />
-        <action
-            android:id="@+id/action_home_to_pptxViewer"
-            app:destination="@id/pptxViewerFragment" />
-        <action
-            android:id="@+id/action_home_to_docxViewer"
-            app:destination="@id/docxViewerFragment" />
-        <action
-            android:id="@+id/action_home_to_markdown"
-            app:destination="@id/markdownFragment" />
-    </fragment>
-
-    <!-- Scanner Fragment -->
-    <fragment
-        android:id="@+id/scannerFragment"
-        android:name="com.officesuite.app.ui.scanner.ScannerFragment"
-        android:label="@string/nav_scan"
-        tools:layout="@layout/fragment_scanner">
-        <action
-            android:id="@+id/action_scanner_to_cropImage"
-            app:destination="@id/cropImageFragment" />
-    </fragment>
-
-    <!-- Crop Image Fragment -->
-    <fragment
-        android:id="@+id/cropImageFragment"
-        android:name="com.officesuite.app.ui.scanner.CropImageFragment"
-        android:label="Crop"
-        tools:layout="@layout/fragment_crop_image">
-        <argument
-            android:name="image_uri"
-            app:argType="string" />
-    </fragment>
-
-    <!-- Converter Fragment -->
-    <fragment
-        android:id="@+id/converterFragment"
-        android:name="com.officesuite.app.ui.converter.ConverterFragment"
-        android:label="@string/nav_convert"
-        tools:layout="@layout/fragment_converter" />
+        android:label="Home"
+        tools:layout="@layout/fragment_home" />
 
     <!-- PDF Viewer Fragment -->
     <fragment
@@ -64,17 +22,13 @@
             android:name="file_uri"
             app:argType="string"
             android:defaultValue="" />
-        <argument
-            android:name="file_type"
-            app:argType="string"
-            android:defaultValue="pdf" />
     </fragment>
 
     <!-- PPTX Viewer Fragment -->
     <fragment
         android:id="@+id/pptxViewerFragment"
         android:name="com.officesuite.app.ui.pptx.PptxViewerFragment"
-        android:label="Presentation"
+        android:label="Presentation Viewer"
         tools:layout="@layout/fragment_pptx_viewer">
         <argument
             android:name="file_uri"
@@ -86,7 +40,7 @@
     <fragment
         android:id="@+id/docxViewerFragment"
         android:name="com.officesuite.app.ui.docx.DocxViewerFragment"
-        android:label="Document"
+        android:label="Document Viewer"
         tools:layout="@layout/fragment_docx_viewer">
         <argument
             android:name="file_uri"
@@ -98,12 +52,94 @@
     <fragment
         android:id="@+id/markdownFragment"
         android:name="com.officesuite.app.ui.markdown.MarkdownFragment"
-        android:label="@string/markdown_editor"
+        android:label="Markdown Viewer"
         tools:layout="@layout/fragment_markdown">
         <argument
             android:name="file_uri"
             app:argType="string"
             android:defaultValue="" />
+    </fragment>
+
+    <!-- Settings Fragment -->
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.officesuite.app.ui.settings.SettingsFragment"
+        android:label="@string/settings"
+        tools:layout="@layout/fragment_settings" />
+
+    <!-- Favorites Fragment -->
+    <fragment
+        android:id="@+id/favoritesFragment"
+        android:name="com.officesuite.app.ui.favorites.FavoritesFragment"
+        android:label="@string/favorites"
+        tools:layout="@layout/fragment_favorites" />
+
+    <!-- CSV Viewer Fragment -->
+    <fragment
+        android:id="@+id/csvViewerFragment"
+        android:name="com.officesuite.app.ui.data.CsvViewerFragment"
+        android:label="@string/csv_file"
+        tools:layout="@layout/fragment_csv_viewer">
+    <!-- Resolved Conflict Fragments -->
+    <!-- XLSX Viewer Fragment -->
+    <fragment
+        android:id="@+id/xlsxViewerFragment"
+        android:name="com.officesuite.app.ui.xlsx.XlsxViewerFragment"
+        android:label="Spreadsheet"
+        tools:layout="@layout/fragment_xlsx_viewer">
+        <argument
+            android:name="file_uri"
+            app:argType="string"
+            android:defaultValue="" />
+    </fragment>
+
+    <!-- PDF Editor Fragment -->
+    <fragment
+        android:id="@+id/pdfEditorFragment"
+        android:name="com.officesuite.app.ui.editor.PdfEditorFragment"
+        android:label="@string/pdf_editor"
+        tools:layout="@layout/fragment_pdf_editor">
+        <argument
+            android:name="file_uri"
+            app:argType="string"
+            android:defaultValue="" />
+    </fragment>
+
+    <!-- PPTX Editor Fragment -->
+    <fragment
+        android:id="@+id/pptxEditorFragment"
+        android:name="com.officesuite.app.ui.editor.PptxEditorFragment"
+        android:label="@string/presentation_editor"
+        tools:layout="@layout/fragment_pptx_editor">
+        <argument
+            android:name="file_uri"
+            app:argType="string"
+            android:defaultValue="" />
+    </fragment>
+
+    <!-- JSON Viewer Fragment -->
+    <fragment
+        android:id="@+id/jsonViewerFragment"
+        android:name="com.officesuite.app.ui.data.JsonViewerFragment"
+        android:label="@string/json_file"
+        tools:layout="@layout/fragment_json_viewer">
+    <!-- DOCX Editor Fragment -->
+    <fragment
+        android:id="@+id/docxEditorFragment"
+        android:name="com.officesuite.app.ui.editor.DocxEditorFragment"
+        android:label="@string/document_editor"
+        tools:layout="@layout/fragment_docx_editor">
+        <argument
+            android:name="file_uri"
+            app:argType="string"
+            android:defaultValue="" />
+        <argument
+            android:name="is_xml"
+            app:argType="boolean"
+            android:defaultValue="false" />
+    </fragment>
+
+</navigation>
     </fragment>
 
 </navigation>

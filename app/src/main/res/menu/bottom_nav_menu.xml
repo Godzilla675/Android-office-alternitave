@@ -16,4 +16,14 @@
         android:icon="@drawable/ic_convert"
         android:title="@string/nav_convert" />
 
+    <item
+        android:id="@+id/favoritesFragment"
+        android:icon="@drawable/ic_star"
+        android:title="@string/favorites" />
+
+    <item
+        android:id="@+id/settingsFragment"
+        android:icon="@drawable/ic_settings"
+        android:title="@string/settings" />
+
 </menu>

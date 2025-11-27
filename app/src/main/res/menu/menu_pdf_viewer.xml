@@ -6,18 +6,112 @@
         android:id="@+id/action_pip"
         android:icon="@drawable/ic_pip"
         android:title="@string/pip_mode"
+        android:id="@+id/action_comments"
+        android:icon="@drawable/ic_edit"
+        android:title="@string/comments"
+        android:id="@+id/action_annotate"
+        android:icon="@drawable/ic_draw"
+        android:title="@string/annotation_tools"
+        app:showAsAction="ifRoom">
+        <menu>
+            <item
+                android:id="@+id/action_highlight"
+                android:icon="@drawable/ic_highlight"
+                android:title="@string/highlight" />
+            <item
+                android:id="@+id/action_underline"
+                android:title="@string/underline" />
+            <item
+                android:id="@+id/action_strikethrough"
+                android:title="@string/strikethrough" />
+            <item
+                android:id="@+id/action_text_box"
+                android:title="@string/text_box" />
+            <item
+                android:id="@+id/action_freehand"
+                android:title="@string/freehand_draw" />
+            <item
+                android:id="@+id/action_signature"
+                android:icon="@drawable/ic_signature"
+                android:title="@string/add_signature" />
+        </menu>
+    </item>
+
+    <item
+        android:id="@+id/action_page_management"
+        android:icon="@drawable/ic_page_management"
+        android:title="@string/page_management"
+        app:showAsAction="never">
+        <menu>
+            <item
+                android:id="@+id/action_rotate"
+                android:title="@string/rotate_page" />
+            <item
+                android:id="@+id/action_delete_page"
+                android:title="@string/delete_page" />
+            <item
+                android:id="@+id/action_extract"
+                android:title="@string/extract_pages" />
+            <item
+                android:id="@+id/action_split"
+                android:icon="@drawable/ic_split"
+                android:title="@string/split_pdf" />
+        </menu>
+    </item>
+
+    <item
+        android:id="@+id/action_security"
+        android:icon="@drawable/ic_lock"
+        android:title="@string/security"
+        app:showAsAction="never">
+        <menu>
+            <item
+                android:id="@+id/action_password_protect"
+                android:title="@string/password_protect" />
+            <item
+                android:id="@+id/action_biometric_lock"
+                android:icon="@drawable/ic_fingerprint"
+                android:title="@string/biometric_lock" />
+        </menu>
+    </item>
+
+    <item
+        android:id="@+id/action_cloud"
+        android:icon="@drawable/ic_cloud_upload"
+        android:title="@string/cloud_storage"
+        app:showAsAction="never">
+        <menu>
+            <item
+                android:id="@+id/action_upload_cloud"
+                android:title="@string/upload_to_cloud" />
+            <item
+                android:id="@+id/action_sync"
+                android:title="@string/sync_now" />
+        </menu>
+    </item>
+        android:id="@+id/action_edit"
+        android:icon="@drawable/ic_edit"
+        android:title="@string/edit_document"
+        app:iconTint="@color/white"
         app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/action_share"
         android:icon="@drawable/ic_share"
         android:title="@string/share"
+        app:iconTint="@color/white"
         app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/action_ocr"
         android:icon="@drawable/ic_text"
         android:title="@string/run_ocr"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_version_history"
+        android:title="@string/version_history"
+        app:iconTint="@color/white"
+        app:showAsAction="never" />
 
 </menu>

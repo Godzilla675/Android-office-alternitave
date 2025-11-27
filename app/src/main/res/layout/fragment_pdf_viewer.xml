@@ -18,7 +18,8 @@
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
             app:navigationIcon="@drawable/ic_back"
-            app:titleTextColor="@color/white" />
+            app:titleTextColor="@color/white"
+            app:menu="@menu/menu_pdf_viewer" />
 
     </com.google.android.material.appbar.AppBarLayout>
 

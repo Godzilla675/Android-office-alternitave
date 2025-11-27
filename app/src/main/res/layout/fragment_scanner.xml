@@ -7,6 +7,73 @@
     android:background="@color/black"
     tools:context=".ui.scanner.ScannerFragment">
 
+    <!-- Scanner Mode Tabs -->
+    <HorizontalScrollView
+        android:id="@+id/scannerModeTabs"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        android:background="#80000000"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupScanMode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="8dp"
+            app:singleSelection="true"
+            app:selectionRequired="true">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipDocument"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/scan_mode_document"
+                android:checked="true"
+                app:chipBackgroundColor="@color/chip_background_selector"
+                android:textColor="@color/white" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipQrCode"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/scan_mode_qr"
+                app:chipBackgroundColor="@color/chip_background_selector"
+                android:textColor="@color/white" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipBusinessCard"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/scan_mode_business_card"
+                app:chipBackgroundColor="@color/chip_background_selector"
+                android:textColor="@color/white" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipIdDocument"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/scan_mode_id"
+                app:chipBackgroundColor="@color/chip_background_selector"
+                android:textColor="@color/white" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipReceipt"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/scan_mode_receipt"
+                app:chipBackgroundColor="@color/chip_background_selector"
+                android:textColor="@color/white" />
+
+        </com.google.android.material.chip.ChipGroup>
+
+    </HorizontalScrollView>
+
     <!-- Camera Preview -->
     <androidx.camera.view.PreviewView
         android:id="@+id/viewFinder"
@@ -15,7 +82,7 @@
         app:layout_constraintBottom_toTopOf="@id/controlsLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/scannerModeTabs" />
 
     <!-- Border Overlay View for auto border detection -->
     <com.officesuite.app.ui.scanner.BorderOverlayView
@@ -25,7 +92,7 @@
         app:layout_constraintBottom_toTopOf="@id/controlsLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/scannerModeTabs" />
 
     <!-- Image Preview (after capture) -->
     <ImageView
@@ -38,7 +105,7 @@
         android:scaleType="centerCrop"
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/scannerModeTabs" />
 
     <!-- Page Count Badge -->
     <TextView
@@ -53,7 +120,7 @@
         android:textColor="@color/white"
         android:textSize="12sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/scannerModeTabs" />
 
     <!-- Auto Border Toggle Badge -->
     <TextView
@@ -68,10 +135,91 @@
         android:textColor="@color/white"
         android:textSize="12sp"
         app:layout_constraintEnd_toStartOf="@id/imagePreview"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/scannerModeTabs" />
+
+    <!-- OCR Language Button -->
+    <TextView
+        android:id="@+id/textOcrLanguage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        android:background="@drawable/bg_rounded"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="4dp"
+        android:text="OCR: Latin"
+        android:textColor="@color/white"
+        android:textSize="12sp"
+        app:layout_constraintStart_toEndOf="@id/textPageCount"
+        app:layout_constraintTop_toBottomOf="@id/scannerModeTabs" />
+
+    <!-- Scan Result Card (for QR, Barcode, Business Card, ID, Receipt) -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardScanResult"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:visibility="gone"
+        app:cardCornerRadius="12dp"
+        app:cardBackgroundColor="#E0FFFFFF"
+        app:layout_constraintBottom_toTopOf="@id/controlsLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/textScanResultTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Scan Result"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/textScanResultContent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp" />
+
+            <LinearLayout
+                android:id="@+id/layoutScanResultActions"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:gravity="end"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnCopyResult"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/copy_content" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnActionResult"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/open"
+                    android:visibility="gone" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
 
     <!-- OCR Result -->
     <ScrollView
+        android:id="@+id/scrollOcrResult"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_margin="16dp"

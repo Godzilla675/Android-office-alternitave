@@ -1,5 +1,6 @@
 package com.officesuite.app.ui.pptx
 
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
@@ -11,9 +12,11 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
 import com.officesuite.app.MainActivity
+import androidx.recyclerview.widget.RecyclerView
 import com.officesuite.app.R
 import com.officesuite.app.databinding.FragmentPptxViewerBinding
 import com.officesuite.app.utils.FileUtils
@@ -21,9 +24,7 @@ import com.officesuite.app.utils.ShareUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.apache.poi.xslf.usermodel.XMLSlideShow
 import java.io.File
-import java.io.FileInputStream
 
 class PptxViewerFragment : Fragment() {
 
@@ -32,8 +33,9 @@ class PptxViewerFragment : Fragment() {
     
     private var fileUri: Uri? = null
     private var cachedFile: File? = null
-    private var slideImages = mutableListOf<Bitmap>()
+    private var slideAdapter: SlideAdapter? = null
     private var currentSlide = 0
+    private var totalSlides = 0
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -62,6 +64,7 @@ class PptxViewerFragment : Fragment() {
             setNavigationOnClickListener {
                 @Suppress("DEPRECATION")
                 requireActivity().onBackPressed()
+                requireActivity().onBackPressedDispatcher.onBackPressed()
             }
             inflateMenu(R.menu.menu_pptx_viewer)
             
@@ -73,6 +76,10 @@ class PptxViewerFragment : Fragment() {
                 when (item.itemId) {
                     R.id.action_pip -> {
                         enterPipMode()
+                    R.id.action_slideshow -> {
+                        startSlideshow()
+                    R.id.action_edit -> {
+                        openEditor()
                         true
                     }
                     R.id.action_share -> {
@@ -94,6 +101,18 @@ class PptxViewerFragment : Fragment() {
             layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
             val snapHelper = PagerSnapHelper()
             snapHelper.attachToRecyclerView(this)
+            
+            addOnScrollListener(object : RecyclerView.OnScrollListener() {
+                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                    super.onScrolled(recyclerView, dx, dy)
+                    val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+                    val firstVisiblePosition = layoutManager.findFirstVisibleItemPosition()
+                    if (firstVisiblePosition != RecyclerView.NO_POSITION && firstVisiblePosition != currentSlide) {
+                        currentSlide = firstVisiblePosition
+                        updateSlideInfo()
+                    }
+                }
+            })
         }
     }
 
@@ -107,7 +126,7 @@ class PptxViewerFragment : Fragment() {
         }
         
         binding.fabNext.setOnClickListener {
-            if (currentSlide < slideImages.size - 1) {
+            if (currentSlide < totalSlides - 1) {
                 currentSlide++
                 binding.recyclerSlides.smoothScrollToPosition(currentSlide)
                 updateSlideInfo()
@@ -126,17 +145,19 @@ class PptxViewerFragment : Fragment() {
                     }
                     
                     cachedFile?.let { file ->
-                        withContext(Dispatchers.IO) {
-                            loadSlides(file)
-                        }
-                        
                         binding.toolbar.title = file.name
                         
-                        val adapter = SlideAdapter(slideImages)
-                        binding.recyclerSlides.adapter = adapter
-                        
-                        updateSlideInfo()
-                        binding.progressBar.visibility = View.GONE
+                        // Create on-demand adapter - slides are rendered as they become visible
+                        slideAdapter = SlideAdapter(file) { slideIndex, slideCount ->
+                            if (totalSlides == 0) {
+                                totalSlides = slideCount
+                                updateSlideInfo()
+                            }
+                            if (slideIndex == 0) {
+                                binding.progressBar.visibility = View.GONE
+                            }
+                        }
+                        binding.recyclerSlides.adapter = slideAdapter
                     }
                 } catch (e: Exception) {
                     binding.progressBar.visibility = View.GONE
@@ -146,100 +167,17 @@ class PptxViewerFragment : Fragment() {
         }
     }
 
-    /**
-     * Loads slides from a PPTX file and converts them to bitmaps for display.
-     * 
-     * Note: This is a simplified implementation that displays basic slide information
-     * rather than fully rendering the slide content. Full PowerPoint rendering would
-     * require a more complex implementation using graphics rendering for each shape,
-     * text box, image, and formatting element.
-     * 
-     * Current limitations:
-     * - Renders placeholder text instead of actual slide content
-     * - Does not display images, charts, or complex shapes
-     * - Does not preserve formatting or animations
-     * 
-     * For production use, consider using a dedicated presentation rendering library.
-     * 
-     * @param file The PPTX file to load
-     */
-    private fun loadSlides(file: File) {
-        slideImages.clear()
-        
-        try {
-            val slideShow = XMLSlideShow(FileInputStream(file))
-            
-            // Use standard 16:9 presentation dimensions (1920x1080 scaled down)
-            val slideWidth = 960
-            val slideHeight = 540
-            
-            for (slide in slideShow.slides) {
-                val bitmap = Bitmap.createBitmap(
-                    slideWidth,
-                    slideHeight,
-                    Bitmap.Config.ARGB_8888
-                )
-                val canvas = Canvas(bitmap)
-                canvas.drawColor(Color.WHITE)
-                
-                // Extract text content from the slide
-                val textPaint = android.graphics.Paint().apply {
-                    color = Color.BLACK
-                    textSize = 24f
-                    isAntiAlias = true
-                }
-                
-                val titlePaint = android.graphics.Paint().apply {
-                    color = Color.BLACK
-                    textSize = 36f
-                    textAlign = android.graphics.Paint.Align.CENTER
-                    isAntiAlias = true
-                }
-                
-                val slideNumber = slideImages.size + 1
-                
-                // Try to extract slide title and content
-                var yPosition = 60f
-                var hasContent = false
-                
-                for (shape in slide.shapes) {
-                    if (shape is org.apache.poi.xslf.usermodel.XSLFTextShape) {
-                        val text = shape.text
-                        if (text.isNotBlank()) {
-                            hasContent = true
-                            // Draw first text as title, rest as content
-                            if (yPosition == 60f) {
-                                canvas.drawText(text.take(40), slideWidth / 2f, yPosition, titlePaint)
-                            } else {
-                                canvas.drawText(text.take(50), 30f, yPosition, textPaint)
-                            }
-                            yPosition += 40f
-                            if (yPosition > slideHeight - 80) break
-                        }
-                    }
-                }
-                
-                // If no content found, show placeholder
-                if (!hasContent) {
-                    canvas.drawText(
-                        "Slide $slideNumber",
-                        slideWidth / 2f,
-                        slideHeight / 2f,
-                        titlePaint
-                    )
-                }
-                
-                slideImages.add(bitmap)
-            }
-            
-            slideShow.close()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+    private fun updateSlideInfo() {
+        binding.textSlideInfo.text = "Slide ${currentSlide + 1} of $totalSlides"
     }
 
-    private fun updateSlideInfo() {
-        binding.textSlideInfo.text = "Slide ${currentSlide + 1} of ${slideImages.size}"
+    private fun openEditor() {
+        fileUri?.let { uri ->
+            val bundle = Bundle().apply {
+                putString("file_uri", uri.toString())
+            }
+            findNavController().navigate(R.id.pptxEditorFragment, bundle)
+        }
     }
 
     private fun shareDocument() {
@@ -290,10 +228,21 @@ class PptxViewerFragment : Fragment() {
         // Navigate to converter or perform conversion
     }
 
+    private fun startSlideshow() {
+        fileUri?.let { uri ->
+            val intent = Intent(requireContext(), PresentationModeActivity::class.java).apply {
+                putExtra(PresentationModeActivity.EXTRA_FILE_URI, uri.toString())
+            }
+            startActivity(intent)
+        } ?: run {
+            Toast.makeText(context, "No presentation loaded", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
-        slideImages.forEach { it.recycle() }
-        slideImages.clear()
+        slideAdapter?.close()
+        slideAdapter = null
         _binding = null
     }
 }
