@@ -21,6 +21,9 @@ enum class DocumentType(val extension: String, val mimeType: String) {
     XLS("xls", "application/vnd.ms-excel"),
     MARKDOWN("md", "text/markdown"),
     TXT("txt", "text/plain"),
+    CSV("csv", "text/csv"),
+    JSON("json", "application/json"),
+    XML("xml", "application/xml"),
     UNKNOWN("", "application/octet-stream");
 
     companion object {

@@ -137,6 +137,16 @@ class HomeFragment : Fragment() {
             DocumentType.MARKDOWN, DocumentType.TXT -> {
                 findNavController().navigate(R.id.markdownFragment, bundle)
             }
+            DocumentType.CSV -> {
+                findNavController().navigate(R.id.csvViewerFragment, bundle)
+            }
+            DocumentType.JSON -> {
+                findNavController().navigate(R.id.jsonViewerFragment, bundle)
+            }
+            DocumentType.XML -> {
+                bundle.putBoolean("is_xml", true)
+                findNavController().navigate(R.id.jsonViewerFragment, bundle)
+            }
             else -> {
                 Toast.makeText(context, "Unsupported file type", Toast.LENGTH_SHORT).show()
             }
