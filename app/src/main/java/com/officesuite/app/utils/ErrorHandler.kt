@@ -39,9 +39,9 @@ object ErrorHandler {
     fun getErrorMessage(throwable: Throwable): String {
         return when (throwable) {
             is FileNotFoundException -> "File not found. It may have been moved or deleted."
+            is UnknownHostException -> "No internet connection. Please check your network."
             is IOException -> "Unable to read or write the file. Please check file permissions."
             is OutOfMemoryError -> "Not enough memory to process this file. Try closing other apps."
-            is UnknownHostException -> "No internet connection. Please check your network."
             is SecurityException -> "Permission denied. Please grant the required permissions."
             is GeneralSecurityException -> "Security error. The file may be encrypted or corrupted."
             is UnsupportedOperationException -> "This operation is not supported for this file type."
@@ -57,9 +57,9 @@ object ErrorHandler {
     fun getErrorType(throwable: Throwable): ErrorType {
         return when (throwable) {
             is FileNotFoundException -> ErrorType.FILE_NOT_FOUND
+            is UnknownHostException -> ErrorType.NETWORK_ERROR
             is IOException -> ErrorType.FILE_READ_ERROR
             is OutOfMemoryError -> ErrorType.MEMORY_ERROR
-            is UnknownHostException -> ErrorType.NETWORK_ERROR
             is SecurityException -> ErrorType.PERMISSION_DENIED
             is GeneralSecurityException -> ErrorType.SECURITY_ERROR
             is UnsupportedOperationException -> ErrorType.UNSUPPORTED_FORMAT
