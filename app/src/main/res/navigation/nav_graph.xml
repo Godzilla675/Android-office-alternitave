@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/homeFragment">
+
+    <!-- Home Fragment -->
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.officesuite.app.ui.home.HomeFragment"
+        android:label="@string/nav_home"
+        tools:layout="@layout/fragment_home">
+        <action
+            android:id="@+id/action_home_to_pdfViewer"
+            app:destination="@id/pdfViewerFragment" />
+        <action
+            android:id="@+id/action_home_to_pptxViewer"
+            app:destination="@id/pptxViewerFragment" />
+        <action
+            android:id="@+id/action_home_to_docxViewer"
+            app:destination="@id/docxViewerFragment" />
+        <action
+            android:id="@+id/action_home_to_markdown"
+            app:destination="@id/markdownFragment" />
+    </fragment>
+
+    <!-- Scanner Fragment -->
+    <fragment
+        android:id="@+id/scannerFragment"
+        android:name="com.officesuite.app.ui.scanner.ScannerFragment"
+        android:label="@string/nav_scan"
+        tools:layout="@layout/fragment_scanner">
+        <action
+            android:id="@+id/action_scanner_to_cropImage"
+            app:destination="@id/cropImageFragment" />
+    </fragment>
+
+    <!-- Crop Image Fragment -->
+    <fragment
+        android:id="@+id/cropImageFragment"
+        android:name="com.officesuite.app.ui.scanner.CropImageFragment"
+        android:label="Crop"
+        tools:layout="@layout/fragment_crop_image">
+        <argument
+            android:name="image_uri"
+            app:argType="string" />
+    </fragment>
+
+    <!-- Converter Fragment -->
+    <fragment
+        android:id="@+id/converterFragment"
+        android:name="com.officesuite.app.ui.converter.ConverterFragment"
+        android:label="@string/nav_convert"
+        tools:layout="@layout/fragment_converter" />
+
+    <!-- PDF Viewer Fragment -->
+    <fragment
+        android:id="@+id/pdfViewerFragment"
+        android:name="com.officesuite.app.ui.pdf.PdfViewerFragment"
+        android:label="PDF Viewer"
+        tools:layout="@layout/fragment_pdf_viewer">
+        <argument
+            android:name="file_uri"
+            app:argType="string"
+            android:defaultValue="" />
+        <argument
+            android:name="file_type"
+            app:argType="string"
+            android:defaultValue="pdf" />
+    </fragment>
+
+    <!-- PPTX Viewer Fragment -->
+    <fragment
+        android:id="@+id/pptxViewerFragment"
+        android:name="com.officesuite.app.ui.pptx.PptxViewerFragment"
+        android:label="Presentation"
+        tools:layout="@layout/fragment_pptx_viewer">
+        <argument
+            android:name="file_uri"
+            app:argType="string"
+            android:defaultValue="" />
+    </fragment>
+
+    <!-- DOCX Viewer Fragment -->
+    <fragment
+        android:id="@+id/docxViewerFragment"
+        android:name="com.officesuite.app.ui.docx.DocxViewerFragment"
+        android:label="Document"
+        tools:layout="@layout/fragment_docx_viewer">
+        <argument
+            android:name="file_uri"
+            app:argType="string"
+            android:defaultValue="" />
+    </fragment>
+
+    <!-- Markdown Fragment -->
+    <fragment
+        android:id="@+id/markdownFragment"
+        android:name="com.officesuite.app.ui.markdown.MarkdownFragment"
+        android:label="@string/markdown_editor"
+        tools:layout="@layout/fragment_markdown">
+        <argument
+            android:name="file_uri"
+            app:argType="string"
+            android:defaultValue="" />
+    </fragment>
+
+</navigation>
