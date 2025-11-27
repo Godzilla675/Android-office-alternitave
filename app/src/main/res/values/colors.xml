@@ -23,4 +23,8 @@
     <color name="surface_light">#FFFFFF</color>
     <color name="text_primary">#212121</color>
     <color name="text_secondary">#757575</color>
+    
+    <!-- Chip colors -->
+    <color name="chip_selected">#1976D2</color>
+    <color name="chip_unselected">#424242</color>
 </resources>
