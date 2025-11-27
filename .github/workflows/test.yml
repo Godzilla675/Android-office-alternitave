@@ -41,7 +41,7 @@ jobs:
         if: always()
         with:
           name: lint-results
-          path: app/build/reports/lint-results*.html
+          path: app/build/reports/lint-results*
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
