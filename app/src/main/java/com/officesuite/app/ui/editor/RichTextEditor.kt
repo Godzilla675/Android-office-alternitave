@@ -2,6 +2,8 @@ package com.officesuite.app.ui.editor
 
 import android.content.Context
 import android.graphics.Typeface
+import android.os.Handler
+import android.os.Looper
 import android.text.Editable
 import android.text.Spannable
 import android.text.SpannableStringBuilder
@@ -11,7 +13,7 @@ import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.Gravity
 import androidx.appcompat.widget.AppCompatEditText
-import java.util.*
+import java.util.Stack
 
 /**
  * Rich text editor with formatting capabilities including:
@@ -27,6 +29,13 @@ class RichTextEditor @JvmOverloads constructor(
     defStyleAttr: Int = android.R.attr.editTextStyle
 ) : AppCompatEditText(context, attrs, defStyleAttr) {
 
+    companion object {
+        /** Maximum number of undo states to keep in memory */
+        private const val MAX_UNDO_STACK_SIZE = 50
+        /** Debounce delay in milliseconds before saving undo state */
+        private const val UNDO_DEBOUNCE_DELAY_MS = 300L
+    }
+
     data class UndoState(
         val text: CharSequence,
         val selectionStart: Int,
@@ -37,17 +46,15 @@ class RichTextEditor @JvmOverloads constructor(
     private val redoStack = Stack<UndoState>()
     private var isUndoRedo = false
     private var lastTextLength = 0
+    private val handler = Handler(Looper.getMainLooper())
+    private var pendingUndoSave: Runnable? = null
 
     var onTextChangedListener: ((CharSequence?) -> Unit)? = null
 
     init {
         addTextChangedListener(object : TextWatcher {
-            private var beforeText: CharSequence = ""
-
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-                if (!isUndoRedo) {
-                    beforeText = s?.toString() ?: ""
-                }
+                // No-op
             }
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
@@ -58,12 +65,19 @@ class RichTextEditor @JvmOverloads constructor(
                 if (!isUndoRedo && s != null) {
                     val lengthDiff = kotlin.math.abs(s.length - lastTextLength)
                     if (lengthDiff > 0) {
-                        saveUndoState()
+                        // Debounce undo state saving to avoid performance issues
+                        scheduleSaveUndoState()
                     }
                     lastTextLength = s.length
                 }
             }
         })
+    }
+
+    private fun scheduleSaveUndoState() {
+        pendingUndoSave?.let { handler.removeCallbacks(it) }
+        pendingUndoSave = Runnable { saveUndoState() }
+        handler.postDelayed(pendingUndoSave!!, UNDO_DEBOUNCE_DELAY_MS)
     }
 
     private fun saveUndoState() {
@@ -73,7 +87,7 @@ class RichTextEditor @JvmOverloads constructor(
             selectionEnd
         )
         undoStack.push(state)
-        if (undoStack.size > 50) {
+        if (undoStack.size > MAX_UNDO_STACK_SIZE) {
             undoStack.removeAt(0)
         }
         redoStack.clear()

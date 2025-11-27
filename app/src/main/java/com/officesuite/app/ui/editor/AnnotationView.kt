@@ -5,7 +5,7 @@ import android.graphics.*
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
-import java.util.*
+import java.util.Stack
 
 /**
  * Custom view for drawing annotations and shapes on documents.
