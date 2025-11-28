@@ -248,7 +248,34 @@ class PptxViewerFragment : Fragment() {
 
     private fun convertToPdf() {
         Toast.makeText(context, "Converting to PDF...", Toast.LENGTH_SHORT).show()
-        // Navigate to converter or perform conversion
+        
+        lifecycleScope.launch {
+            try {
+                val documentConverter = com.officesuite.app.data.repository.DocumentConverter(requireContext())
+                cachedFile?.let { file ->
+                    val options = com.officesuite.app.data.model.ConversionOptions(
+                        sourceFormat = com.officesuite.app.data.model.DocumentType.PPTX,
+                        targetFormat = com.officesuite.app.data.model.DocumentType.PDF
+                    )
+                    val result = documentConverter.convert(file, options)
+                    
+                    if (result.success && result.outputPath != null) {
+                        Toast.makeText(context, "PDF saved: ${java.io.File(result.outputPath).name}", Toast.LENGTH_LONG).show()
+                        ShareUtils.shareFile(
+                            requireContext(),
+                            java.io.File(result.outputPath),
+                            "application/pdf"
+                        )
+                    } else {
+                        Toast.makeText(context, "Conversion failed: ${result.errorMessage}", Toast.LENGTH_LONG).show()
+                    }
+                } ?: run {
+                    Toast.makeText(context, "No file loaded", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
     }
 
     private fun startSlideshow() {

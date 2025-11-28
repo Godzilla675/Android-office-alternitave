@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.officesuite.app.R
+import com.officesuite.app.data.repository.DocumentConverter
 import com.officesuite.app.databinding.FragmentDocxViewerBinding
 import com.officesuite.app.utils.ErrorHandler
 import com.officesuite.app.utils.FileUtils
@@ -245,13 +246,13 @@ class DocxViewerFragment : Fragment() {
         return htmlBuilder.toString()
     }
 
+    @Suppress("UNUSED_PARAMETER")
     private fun processParagraph(paragraph: org.apache.poi.xwpf.usermodel.XWPFParagraph, pictureMap: Map<String, String>): String {
         val builder = StringBuilder()
         val paragraphText = StringBuilder()
         
         // Determine heading level based on style
         val styleName = paragraph.style ?: ""
-        val isHeading = styleName.lowercase().startsWith("heading")
         val headingLevel = when {
             styleName.lowercase() == "heading1" || styleName == "Title" -> 1
             styleName.lowercase() == "heading2" -> 2
@@ -296,6 +297,7 @@ class DocxViewerFragment : Fragment() {
                 }
                 
                 // Handle font size
+                @Suppress("DEPRECATION")
                 val fontSize = run.fontSize
                 if (fontSize > 0 && fontSize != 11) {
                     styledText = "<span style=\"font-size:${fontSize}pt\">$styledText</span>"
@@ -385,7 +387,37 @@ class DocxViewerFragment : Fragment() {
     }
 
     private fun convertToPdf() {
+        if (fileUri == null || cachedFile == null) {
+            Toast.makeText(context, "No file loaded", Toast.LENGTH_SHORT).show()
+            return
+        }
         Toast.makeText(context, "Converting to PDF...", Toast.LENGTH_SHORT).show()
+        
+        lifecycleScope.launch {
+            val result = Result.runCatchingSuspend {
+                val documentConverter = DocumentConverter(requireContext())
+                val options = com.officesuite.app.data.model.ConversionOptions(
+                    sourceFormat = com.officesuite.app.data.model.DocumentType.DOCX,
+                    targetFormat = com.officesuite.app.data.model.DocumentType.PDF
+                )
+                documentConverter.convert(cachedFile!!, options)
+            }
+            
+            result.onSuccess { conversionResult ->
+                if (conversionResult.success && conversionResult.outputPath != null) {
+                    Toast.makeText(context, "PDF saved: ${java.io.File(conversionResult.outputPath).name}", Toast.LENGTH_LONG).show()
+                    ShareUtils.shareFile(
+                        requireContext(),
+                        java.io.File(conversionResult.outputPath),
+                        "application/pdf"
+                    )
+                } else {
+                    Toast.makeText(context, "Conversion failed: ${conversionResult.errorMessage}", Toast.LENGTH_LONG).show()
+                }
+            }.onError { error ->
+                ErrorHandler.showErrorToast(requireContext(), error.exception)
+            }
+        }
     }
 
     private fun copyToClipboard() {
