@@ -37,6 +37,9 @@ object NavigationUtils {
             DocumentType.PPTX, DocumentType.PPT -> {
                 navController.navigate(R.id.pptxViewerFragment, bundle)
             }
+            DocumentType.XLSX, DocumentType.XLS -> {
+                navController.navigate(R.id.xlsxViewerFragment, bundle)
+            }
             DocumentType.MARKDOWN, DocumentType.TXT -> {
                 navController.navigate(R.id.markdownFragment, bundle)
             }

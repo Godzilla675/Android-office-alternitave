@@ -808,7 +808,6 @@
     
     <!-- Custom Shortcuts -->
     <string name="custom_shortcuts">Custom Shortcuts</string>
-    <string name="keyboard_shortcuts">Keyboard Shortcuts</string>
     <string name="edit_shortcut">Edit Shortcut</string>
     <string name="reset_shortcut">Reset to Default</string>
     <string name="reset_all_shortcuts">Reset All Shortcuts</string>

@@ -194,31 +194,8 @@ class HomeFragment : Fragment() {
             size = file.size
         )
         
+        // Use centralized navigation utility to avoid code duplication
         NavigationUtils.navigateToViewer(this, file.uri.toString(), file.type)
-        val bundle = Bundle().apply {
-            putString("file_uri", file.uri.toString())
-        }
-        
-        when (file.type) {
-            DocumentType.PDF -> {
-                findNavController().navigate(R.id.pdfViewerFragment, bundle)
-            }
-            DocumentType.DOCX, DocumentType.DOC -> {
-                findNavController().navigate(R.id.docxViewerFragment, bundle)
-            }
-            DocumentType.PPTX, DocumentType.PPT -> {
-                findNavController().navigate(R.id.pptxViewerFragment, bundle)
-            }
-            DocumentType.XLSX, DocumentType.XLS -> {
-                findNavController().navigate(R.id.xlsxViewerFragment, bundle)
-            }
-            DocumentType.MARKDOWN, DocumentType.TXT -> {
-                findNavController().navigate(R.id.markdownFragment, bundle)
-            }
-            else -> {
-                Toast.makeText(context, "Unsupported file type", Toast.LENGTH_SHORT).show()
-            }
-        }
     }
     
     private fun loadRecentFiles() {

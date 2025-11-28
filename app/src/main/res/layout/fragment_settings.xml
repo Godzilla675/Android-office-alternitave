@@ -705,20 +705,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/platform_features"
-            <!-- Developer Section -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/developer_options"
                 android:textColor="@color/primary"
                 android:textSize="14sp"
                 android:textStyle="bold"
                 android:layout_marginBottom="8dp" />
 
-            <!-- Platform Features -->
+            <!-- Platform Features Card -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardPlatformFeatures"
-            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
@@ -726,7 +720,6 @@
                 app:cardElevation="2dp"
                 android:clickable="true"
                 android:focusable="true">
-                app:cardElevation="2dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -745,7 +738,6 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/platform_features"
-                            android:text="@string/developer_settings"
                             android:textColor="@color/text_primary"
                             android:textSize="16sp" />
 
@@ -753,7 +745,6 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Digital Wellbeing, Voice Commands, Quick Settings"
-                            android:text="Debug mode, beta features, performance"
                             android:textColor="@color/text_secondary"
                             android:textSize="12sp" />
 
@@ -764,6 +755,61 @@
                         android:layout_height="24dp"
                         android:src="@drawable/ic_arrow"
                         android:contentDescription="Navigate" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Developer Section -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/developer_options"
+                android:textColor="@color/primary"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <!-- Developer Settings Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardDeveloperSettings"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="2dp"
+                android:clickable="true"
+                android:focusable="true">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="16dp"
+                    android:gravity="center_vertical">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/developer_settings"
+                            android:textColor="@color/text_primary"
+                            android:textSize="16sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Debug mode, beta features, performance"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="12sp" />
+
+                    </LinearLayout>
+
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnDeveloperSettings"
                         style="@style/Widget.MaterialComponents.Button.TextButton"
