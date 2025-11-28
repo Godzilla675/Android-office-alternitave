@@ -58,7 +58,9 @@ class FileUtilsTest {
     }
 
     @Test
-    fun `getFileExtension returns extension for hidden file without extension`() {
+    fun `getFileExtension for hidden file returns text after dot as extension`() {
+        // For ".hidden", substringAfterLast('.', "") returns "hidden"
+        // since it finds the dot and returns everything after it
         val extension = FileUtils.getFileExtension(".hidden")
         
         assertEquals("hidden", extension)
@@ -121,7 +123,8 @@ class FileUtilsTest {
     }
 
     @Test
-    fun `formatFileSize truncates decimal for KB`() {
+    fun `formatFileSize uses integer division for KB`() {
+        // 1500 / 1024 = 1.46 which becomes 1 with integer division
         val formatted = FileUtils.formatFileSize(1500L)
         
         assertEquals("1 KB", formatted)
