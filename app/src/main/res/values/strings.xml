@@ -510,4 +510,99 @@
     <string name="validate_document">Validate Document</string>
     <string name="validation_passed">Validation Passed</string>
     <string name="validation_failed">Validation Failed</string>
+
+    <!-- Phase 2: Productivity & Gamification Features -->
+    <string name="productivity">Productivity</string>
+    <string name="focus_timer">Focus Timer</string>
+    <string name="pomodoro">Pomodoro Timer</string>
+    <string name="focus_session">Focus Session</string>
+    <string name="short_break">Short Break</string>
+    <string name="long_break">Long Break</string>
+    <string name="start_focus">Start Focus</string>
+    <string name="pause_timer">Pause</string>
+    <string name="resume_timer">Resume</string>
+    <string name="skip_session">Skip</string>
+    <string name="stop_timer">Stop</string>
+    <string name="session_complete">Session Complete!</string>
+    <string name="focus_complete">Focus session complete! Time for a break.</string>
+    <string name="break_complete">Break complete! Ready for another focus session?</string>
+    <string name="sessions_completed">Sessions Completed: %1$d</string>
+    <string name="total_focus_time">Total Focus Time: %1$d min</string>
+    <string name="focus_duration">Focus Duration</string>
+    <string name="break_duration">Break Duration</string>
+    <string name="long_break_duration">Long Break Duration</string>
+    <string name="auto_start_break">Auto-start breaks</string>
+    <string name="auto_start_focus">Auto-start focus sessions</string>
+
+    <!-- Goals & Streaks -->
+    <string name="daily_goals">Daily Goals</string>
+    <string name="reading_goal">Reading Goal</string>
+    <string name="writing_goal">Writing Goal</string>
+    <string name="set_goal">Set Goal</string>
+    <string name="goal_progress">%1$d%% complete</string>
+    <string name="writing_streak">Writing Streak</string>
+    <string name="streak_days">%1$d days</string>
+    <string name="streak_broken">Streak broken! Start a new one today.</string>
+    <string name="daily_reading_minutes">%1$d min / %2$d min</string>
+    <string name="daily_writing_words">%1$d / %2$d words</string>
+
+    <!-- Achievements -->
+    <string name="achievements">Achievements</string>
+    <string name="unlocked_achievements">Unlocked Achievements</string>
+    <string name="locked_achievements">Locked Achievements</string>
+    <string name="achievement_unlocked">Achievement Unlocked!</string>
+    <string name="view_all_achievements">View All Achievements</string>
+
+    <!-- Productivity Stats -->
+    <string name="productivity_stats">Productivity Stats</string>
+    <string name="documents_viewed">Documents Viewed</string>
+    <string name="documents_edited">Documents Edited</string>
+    <string name="total_reading_time_stat">Total Reading Time</string>
+    <string name="total_words_written">Total Words Written</string>
+    <string name="this_week">This Week</string>
+    <string name="this_month">This Month</string>
+    <string name="all_time">All Time</string>
+
+    <!-- Study Mode -->
+    <string name="study_mode">Study Mode</string>
+    <string name="enable_study_mode">Enable Study Mode</string>
+    <string name="study_mode_enabled">Study Mode Enabled</string>
+    <string name="study_mode_disabled">Study Mode Disabled</string>
+    <string name="study_mode_description">Block distracting features while studying</string>
+
+    <!-- Focus Mode -->
+    <string name="focus_mode">Focus Mode</string>
+    <string name="enable_focus_mode">Enable Focus Mode</string>
+    <string name="focus_mode_description">Distraction-free writing environment</string>
+
+    <!-- Document Completion Tracking -->
+    <string name="document_progress">Document Progress</string>
+    <string name="continue_reading">Continue Reading</string>
+    <string name="in_progress_documents">In Progress Documents</string>
+    <string name="completion_percentage">%1$d%% complete</string>
+
+    <!-- Scan Presets -->
+    <string name="scan_presets">Scan Presets</string>
+    <string name="save_preset">Save Preset</string>
+    <string name="load_preset">Load Preset</string>
+    <string name="delete_preset">Delete Preset</string>
+    <string name="preset_name">Preset Name</string>
+    <string name="preset_description">Description</string>
+    <string name="preset_saved">Preset saved</string>
+    <string name="preset_deleted">Preset deleted</string>
+    <string name="preset_applied">Preset applied</string>
+    <string name="default_preset">Default Preset</string>
+    <string name="recent_presets">Recent Presets</string>
+    <string name="built_in_presets">Built-in Presets</string>
+    <string name="custom_presets">Custom Presets</string>
+    <string name="duplicate_preset">Duplicate Preset</string>
+    <string name="scan_quality">Scan Quality</string>
+    <string name="image_filter">Image Filter</string>
+    <string name="output_format">Output Format</string>
+    <string name="auto_crop">Auto Crop</string>
+    <string name="perspective_correction">Perspective Correction</string>
+    <string name="enhance_colors">Enhance Colors</string>
+    <string name="remove_shadows">Remove Shadows</string>
+    <string name="multi_page">Multi-page Mode</string>
+    <string name="ocr_after_scan">Run OCR after scan</string>
 </resources>

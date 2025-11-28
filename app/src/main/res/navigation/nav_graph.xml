@@ -179,4 +179,10 @@
             android:defaultValue="" />
     </fragment>
 
+    <!-- Productivity Fragment (Gamification & Focus Timer) -->
+    <fragment
+        android:id="@+id/productivityFragment"
+        android:name="com.officesuite.app.ui.productivity.ProductivityFragment"
+        android:label="@string/productivity" />
+
 </navigation>
