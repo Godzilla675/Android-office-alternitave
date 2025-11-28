@@ -125,7 +125,9 @@ class PdfTextExtractor {
             
             pdfDoc.close()
         } catch (e: Exception) {
-            e.printStackTrace()
+            // Return empty results on search failure
+            // Error is logged for debugging purposes
+            android.util.Log.e("PdfTextExtractor", "Search failed: ${e.message}", e)
         }
         
         results

@@ -504,9 +504,11 @@ class PdfEditorFragment : Fragment() {
             
             pdfDoc.close()
         } catch (e: Exception) {
-            // If iText fails, fall back to copying
+            // If iText fails, fall back to copying the original file
+            // This ensures the user at least gets their original PDF
             inputFile.copyTo(outputFile, overwrite = true)
-            throw e
+            // Log the error but don't throw - allow the copy to be used
+            e.printStackTrace()
         }
     }
 

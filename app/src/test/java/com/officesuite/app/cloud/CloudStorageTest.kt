@@ -96,7 +96,8 @@ class CloudStorageTest {
     fun `CloudStorageManager ProviderType enum values`() {
         val types = CloudStorageManager.ProviderType.values()
         
-        assertEquals(3, types.size)
+        assertEquals(4, types.size)
+        assertTrue(types.contains(CloudStorageManager.ProviderType.LOCAL))
         assertTrue(types.contains(CloudStorageManager.ProviderType.GOOGLE_DRIVE))
         assertTrue(types.contains(CloudStorageManager.ProviderType.DROPBOX))
         assertTrue(types.contains(CloudStorageManager.ProviderType.ONEDRIVE))
