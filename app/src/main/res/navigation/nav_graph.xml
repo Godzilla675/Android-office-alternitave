@@ -185,4 +185,11 @@
         android:name="com.officesuite.app.ui.productivity.ProductivityFragment"
         android:label="@string/productivity" />
 
+    <!-- Developer Settings Fragment (Technical Improvements Phase 2) -->
+    <fragment
+        android:id="@+id/developerSettingsFragment"
+        android:name="com.officesuite.app.ui.developer.DeveloperSettingsFragment"
+        android:label="@string/developer_settings"
+        tools:layout="@layout/fragment_developer_settings" />
+
 </navigation>
