@@ -156,7 +156,9 @@ class IdDocumentScanner(private val ocrManager: OcrManager) {
         }
     }
 
+    @Suppress("UNUSED_PARAMETER")
     private fun extractName(lines: List<String>, upperText: String): String? {
+        // upperText parameter reserved for full-text search optimization
         // Look for name after common labels
         for (line in lines) {
             val upperLine = line.uppercase()

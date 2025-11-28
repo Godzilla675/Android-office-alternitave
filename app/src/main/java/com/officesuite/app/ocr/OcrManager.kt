@@ -83,7 +83,7 @@ class OcrManager {
                             lines = block.lines.map { line ->
                                 TextLine(
                                     text = line.text,
-                                    confidence = line.confidence ?: 0f
+                                    confidence = line.confidence
                                 )
                             }
                         )

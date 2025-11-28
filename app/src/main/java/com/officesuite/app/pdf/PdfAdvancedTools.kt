@@ -408,8 +408,10 @@ class PdfAdvancedTools(private val context: Context) {
             val writer = PdfWriter(FileOutputStream(outputFile))
             val pdfDoc = PdfDocument(reader, writer)
             
+            // Process each page to flatten annotations
             for (i in 1..pdfDoc.numberOfPages) {
-                val page = pdfDoc.getPage(i)
+                @Suppress("UNUSED_VARIABLE")
+                val processedPage = pdfDoc.getPage(i)
                 // Flatten form fields and annotations
                 // Note: Direct annotation flattening through iText7 requires
                 // using PdfAcroForm.flattenFields() for form fields

@@ -236,7 +236,9 @@ class PptxEditorFragment : Fragment() {
             .show(parentFragmentManager, "text_input")
     }
 
+    @Suppress("UNUSED_PARAMETER")
     private fun handleImageSelected(uri: Uri) {
+        // uri parameter will be used when full image insertion is implemented
         Toast.makeText(context, "Image selected - inserting into slide", Toast.LENGTH_SHORT).show()
         // In a full implementation, this would add the image to the annotation layer
     }
@@ -322,7 +324,7 @@ class PptxEditorFragment : Fragment() {
                         }
 
                         binding.toolbar.title = file.name
-                        val adapter = SlideAdapter(file) { slideIndex, slideCount ->
+                        val adapter = SlideAdapter(file) { slideIndex, _ ->
                             if (slideIndex == 0) {
                                 binding.progressBar.visibility = View.GONE
                             }

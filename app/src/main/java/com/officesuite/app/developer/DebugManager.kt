@@ -367,7 +367,9 @@ object DebugManager {
     
     /**
      * Get debug info for troubleshooting.
+     * @param context Application context (reserved for future device-specific info)
      */
+    @Suppress("UNUSED_PARAMETER")
     fun getDebugInfo(context: Context): String {
         return buildString {
             appendLine("=== Debug Information ===")

@@ -65,7 +65,8 @@ class PresentationTools(private val context: Context) {
             
             // Note: Apache POI has limited transition support
             // We'll set transition properties where possible
-            val xmlSlide = slide.xmlObject
+            @Suppress("UNUSED_VARIABLE")
+            val slideXml = slide.xmlObject
             
             // Apache POI XSLF has limited support for transitions
             // We track transition settings in our own metadata
@@ -80,9 +81,11 @@ class PresentationTools(private val context: Context) {
         }
     }
 
+    @Suppress("UNUSED_PARAMETER")
     private fun setTransitionMetadata(slide: XSLFSlide, config: TransitionConfig) {
         // Store transition info as custom property (Apache POI limitation)
         // In a full implementation, we'd modify the XML directly
+        // The slide and config parameters are used when full POI transition API is available
     }
 
     /**
@@ -325,7 +328,12 @@ class PresentationTools(private val context: Context) {
 
     /**
      * Duplicate a slide
+     * @param file The source presentation file
+     * @param outputFile The output file to write to
+     * @param slideIndex The index of the slide to duplicate
+     * @param insertAt Optional position to insert the duplicated slide (currently appends to end)
      */
+    @Suppress("UNUSED_PARAMETER")
     suspend fun duplicateSlide(
         file: File,
         outputFile: File,
@@ -378,7 +386,14 @@ class PresentationTools(private val context: Context) {
 
     /**
      * Add a new slide with specified layout
+     * @param file The source presentation file
+     * @param outputFile The output file to write to
+     * @param layoutType The type of slide layout to use
+     * @param title Optional title text for the slide
+     * @param content Optional content text for the slide
+     * @param insertAt Optional position to insert the new slide (currently appends to end)
      */
+    @Suppress("UNUSED_PARAMETER")
     suspend fun addSlide(
         file: File,
         outputFile: File,
@@ -502,7 +517,11 @@ class PresentationTools(private val context: Context) {
 
     /**
      * Get slide thumbnails for slide sorter view
+     * @param file The presentation file
+     * @param width Thumbnail width in pixels (for future bitmap generation)
+     * @param height Thumbnail height in pixels (for future bitmap generation)
      */
+    @Suppress("UNUSED_PARAMETER")
     suspend fun getSlideThumbnails(
         file: File,
         width: Int = 200,
@@ -558,7 +577,11 @@ class PresentationTools(private val context: Context) {
      * Apply a theme/color scheme to the presentation
      * Note: Theme application is limited due to Android AWT limitations
      * This is a placeholder that saves the file without color changes
+     * @param file The source presentation file
+     * @param outputFile The output file to write to
+     * @param theme The theme to apply (colors stored for future implementation)
      */
+    @Suppress("UNUSED_PARAMETER")
     suspend fun applyTheme(
         file: File,
         outputFile: File,

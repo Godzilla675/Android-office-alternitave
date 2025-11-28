@@ -204,7 +204,9 @@ class ReceiptScanner(private val ocrManager: OcrManager) {
         return null
     }
 
+    @Suppress("UNUSED_PARAMETER")
     private fun extractAmounts(lines: List<String>, upperText: String): Triple<Double?, Double?, Double?> {
+        // upperText parameter reserved for full-text pattern matching
         var subtotal: Double? = null
         var tax: Double? = null
         var total: Double? = null
