@@ -104,15 +104,15 @@ echo ""
 
 # Use aapt to analyze APK (if available)
 echo "=== APK Badge Information ==="
+
+# Determine SDK root - try both ANDROID_HOME and ANDROID_SDK_ROOT
+SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+
 if command -v aapt &> /dev/null; then
     AAPT_CMD="aapt"
-elif [ -f "$ANDROID_HOME/build-tools/34.0.0/aapt" ]; then
-    AAPT_CMD="$ANDROID_HOME/build-tools/34.0.0/aapt"
-elif [ -f "/usr/local/lib/android/sdk/build-tools/34.0.0/aapt" ]; then
-    AAPT_CMD="/usr/local/lib/android/sdk/build-tools/34.0.0/aapt"
 else
-    # Find any aapt in build-tools
-    AAPT_CMD=$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools" -name "aapt" 2>/dev/null | head -1)
+    # Find any aapt in build-tools (dynamically finds latest version)
+    AAPT_CMD=$(find "$SDK_ROOT/build-tools" -name "aapt" 2>/dev/null | sort -V | tail -1)
 fi
 
 if [ -n "$AAPT_CMD" ] && [ -f "$AAPT_CMD" ]; then
@@ -179,12 +179,11 @@ echo ""
 # Check signatures (debug vs release)
 echo "=== Signature Check ==="
 # Try using apksigner if available (more accurate for v2/v3/v4 signatures)
-if [ -f "$ANDROID_HOME/build-tools/34.0.0/apksigner" ]; then
-    APKSIGNER_CMD="$ANDROID_HOME/build-tools/34.0.0/apksigner"
-elif [ -f "/usr/local/lib/android/sdk/build-tools/34.0.0/apksigner" ]; then
-    APKSIGNER_CMD="/usr/local/lib/android/sdk/build-tools/34.0.0/apksigner"
+# Find apksigner dynamically (uses SDK_ROOT defined earlier)
+if command -v apksigner &> /dev/null; then
+    APKSIGNER_CMD="apksigner"
 else
-    APKSIGNER_CMD=$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools" -name "apksigner" 2>/dev/null | head -1)
+    APKSIGNER_CMD=$(find "$SDK_ROOT/build-tools" -name "apksigner" 2>/dev/null | sort -V | tail -1)
 fi
 
 if [ -n "$APKSIGNER_CMD" ] && [ -f "$APKSIGNER_CMD" ]; then

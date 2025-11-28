@@ -46,7 +46,7 @@ jobs:
         run: |
           APK_PATH="app/build/outputs/apk/debug/app-debug.apk"
           # Find aapt in Android SDK build-tools
-          AAPT_CMD=$(find $ANDROID_SDK_ROOT/build-tools -name "aapt" | head -1)
+          AAPT_CMD=$(find "$ANDROID_SDK_ROOT/build-tools" -name "aapt" 2>/dev/null | head -1)
           if [ -z "$AAPT_CMD" ]; then
             echo "Error: aapt not found in Android SDK"
             exit 1
@@ -120,7 +120,7 @@ jobs:
             echo ""
             echo "=== APK Analysis ==="
             # Find aapt in Android SDK
-            AAPT_CMD=$(find $ANDROID_SDK_ROOT/build-tools -name "aapt" | head -1)
+            AAPT_CMD=$(find "$ANDROID_SDK_ROOT/build-tools" -name "aapt" 2>/dev/null | head -1)
             if [ -n "$AAPT_CMD" ]; then
               "$AAPT_CMD" dump badging app/build/outputs/apk/debug/app-debug.apk | head -20
             else
