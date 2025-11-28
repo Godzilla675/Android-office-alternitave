@@ -44,6 +44,7 @@ class BiometricAuthManager(private val context: Context) {
         object Unavailable : BiometricStatus()
     }
 
+    @Suppress("DEPRECATION")
     private val securePrefs: SharedPreferences by lazy {
         try {
             val masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)

@@ -38,6 +38,7 @@ class TextToSpeechManager(
                     onCompletionListener?.invoke()
                 }
 
+                @Deprecated("Deprecated in Java")
                 override fun onError(utteranceId: String?) {
                     // Error occurred
                 }

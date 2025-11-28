@@ -66,6 +66,7 @@ class FocusModeManager(private val context: Context) {
 
         // Store original state
         val decorView = activity.window.decorView
+        @Suppress("DEPRECATION")
         originalSystemUiVisibility = decorView.systemUiVisibility
 
         // Enter immersive mode
@@ -172,6 +173,7 @@ class FocusModeManager(private val context: Context) {
     /**
      * Create focus mode overlay for dimming background
      */
+    @Suppress("UNUSED_PARAMETER")
     fun createDimOverlay(parent: ViewGroup, dimLevel: Float = 0.15f): View {
         return View(context).apply {
             layoutParams = ViewGroup.LayoutParams(

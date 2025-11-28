@@ -38,6 +38,7 @@ class ScannerTileService : TileService() {
         }
         
         // Collapse the quick settings panel and start activity
+        @Suppress("DEPRECATION")
         startActivityAndCollapse(intent)
     }
     
@@ -71,6 +72,7 @@ class ScannerTileService : TileService() {
         /**
          * Request to add the tile to quick settings
          */
+        @Suppress("UNUSED_VARIABLE")
         @RequiresApi(Build.VERSION_CODES.TIRAMISU)
         fun requestAddTile(context: Context) {
             val statusBarManager = context.getSystemService(Context.STATUS_BAR_SERVICE)

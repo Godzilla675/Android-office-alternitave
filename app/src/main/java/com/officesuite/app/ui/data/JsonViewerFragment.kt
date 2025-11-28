@@ -59,6 +59,7 @@ class JsonViewerFragment : Fragment() {
     private fun setupToolbar() {
         binding.toolbar.apply {
             setNavigationOnClickListener {
+                @Suppress("DEPRECATION")
                 requireActivity().onBackPressed()
             }
             inflateMenu(R.menu.menu_data_viewer)
