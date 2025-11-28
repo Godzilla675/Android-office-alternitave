@@ -5,7 +5,18 @@ This document contains NEW suggested features for enhancing the Android Office S
 > **Note**: Phase 1 features (PDF Annotation, Cloud Storage, DOCX Editing, OCR, Scanner, Templates, Collaboration, etc.) have been completed. This document focuses on Phase 2 enhancements to make this a complete daily-driver document solution.
 
 ---
+###critical
 
+🚨 Missing Features for Daily Driver Status
+Deal-breakers (you CANNOT daily drive without these):
+Feature	Status	Impact
+Auto-save	❌ Missing	Lose all work on crash/back press
+Recent files actually persisting	❌ Broken	recentFilesAdapter = RecentFilesAdapter(emptyList()) - always empty
+PDF text selection/copy	❌ Missing	Can't copy text from PDFs
+Search within documents	❌ Missing	Can't find anything in large docs
+Actual PDF annotation saving	❌ Fake	Code literally just copies the original file
+Undo persistence	❌ Missing	Undo history lost on page change/rotation
+Cloud sync	❌ Folder exists but empty	No actual implementation
 ## 🔴 High Priority Features (Phase 2)
 
 ### 1. AI-Powered Document Intelligence
