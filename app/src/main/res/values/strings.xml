@@ -580,4 +580,7 @@
     <string name="ruler_opacity">Ruler Opacity</string>
     <string name="next_line">Next Line</string>
     <string name="previous_line">Previous Line</string>
+
+    <!-- Quick Notes Widget -->
+    <string name="quick_notes_widget_desc">Quick access to create notes, checklists, and photo notes</string>
 </resources>

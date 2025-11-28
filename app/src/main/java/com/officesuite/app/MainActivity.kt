@@ -24,6 +24,8 @@ import com.officesuite.app.databinding.ActivityMainBinding
 import com.officesuite.app.ui.onboarding.OnboardingManager
 import com.officesuite.app.widget.QuickActionsWidget
 
+import com.officesuite.app.widget.QuickNotesWidget
+
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
@@ -146,6 +148,16 @@ class MainActivity : AppCompatActivity() {
             }
             QuickActionsWidget.ACTION_CONVERT -> {
                 navigateToConverter()
+            }
+            // Quick Notes Widget actions
+            QuickNotesWidget.ACTION_QUICK_NOTE -> {
+                navigateToCreateNew()
+            }
+            QuickNotesWidget.ACTION_CHECKLIST -> {
+                navigateToCreateNew() // Opens markdown for now, can be extended for dedicated checklist
+            }
+            QuickNotesWidget.ACTION_PHOTO_NOTE -> {
+                navigateToScanner()
             }
         }
     }

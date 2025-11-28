@@ -166,6 +166,19 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_quick_actions_info" />
         </receiver>
+
+        <!-- Quick Notes Widget -->
+        <receiver
+            android:name=".widget.QuickNotesWidget"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_quick_notes_info" />
+        </receiver>
+
         <!-- Presentation Mode Activity -->
         <activity
             android:name=".ui.pptx.PresentationModeActivity"
