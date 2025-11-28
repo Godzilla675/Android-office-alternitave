@@ -642,11 +642,6 @@
     <string name="study_mode_disabled">Study Mode Disabled</string>
     <string name="study_mode_description">Block distracting features while studying</string>
 
-    <!-- Focus Mode -->
-    <string name="focus_mode">Focus Mode</string>
-    <string name="enable_focus_mode">Enable Focus Mode</string>
-    <string name="focus_mode_description">Distraction-free writing environment</string>
-
     <!-- Document Completion Tracking -->
     <string name="document_progress">Document Progress</string>
     <string name="continue_reading">Continue Reading</string>
