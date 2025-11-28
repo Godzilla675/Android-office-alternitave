@@ -322,7 +322,11 @@ class PptxEditorFragment : Fragment() {
                         }
 
                         binding.toolbar.title = file.name
-                        val adapter = SlideAdapter(slideImages)
+                        val adapter = SlideAdapter(file) { slideIndex, slideCount ->
+                            if (slideIndex == 0) {
+                                binding.progressBar.visibility = View.GONE
+                            }
+                        }
                         binding.recyclerSlides.adapter = adapter
                         updateSlideInfo()
                         binding.progressBar.visibility = View.GONE

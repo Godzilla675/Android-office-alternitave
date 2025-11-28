@@ -101,9 +101,6 @@ class PdfViewerFragment : Fragment() {
         binding.toolbar.apply {
             setNavigationOnClickListener {
                 findNavController().navigateUp()
-                @Suppress("DEPRECATION")
-                requireActivity().onBackPressed()
-                requireActivity().onBackPressedDispatcher.onBackPressed()
             }
             inflateMenu(R.menu.menu_pdf_viewer)
             
@@ -115,10 +112,12 @@ class PdfViewerFragment : Fragment() {
                 when (item.itemId) {
                     R.id.action_pip -> {
                         enterPipMode()
-            setOnMenuItemClickListener { item ->
-                when (item.itemId) {
+                        true
+                    }
                     R.id.action_comments -> {
                         showComments()
+                        true
+                    }
                     R.id.action_edit -> {
                         openEditor()
                         true
@@ -295,6 +294,8 @@ class PdfViewerFragment : Fragment() {
             .setMessage(details)
             .setPositiveButton("OK", null)
             .show()
+    }
+    
     private fun openEditor() {
         fileUri?.let { uri ->
             val bundle = Bundle().apply {

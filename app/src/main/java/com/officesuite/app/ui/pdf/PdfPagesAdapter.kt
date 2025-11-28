@@ -51,19 +51,15 @@ class PdfPagesAdapter(
     
     override fun onViewRecycled(holder: PageViewHolder) {
         super.onViewRecycled(holder)
-        // Clear the ImageView to help with memory when scrolling
         holder.clearImage()
     }
 
     override fun getItemCount(): Int = pageCount
 
-    override fun onViewRecycled(holder: PageViewHolder) {
-        super.onViewRecycled(holder)
-        holder.recycle()
-    }
-
     fun close() {
-        renderedPages.values.forEach { it.recycle() }
+        renderedPages.values.forEach { 
+            if (!it.isRecycled) it.recycle() 
+        }
         renderedPages.clear()
         pdfRenderer?.close()
         // Clear cached pages for this document
@@ -80,13 +76,22 @@ class PdfPagesAdapter(
         private var currentPageIndex: Int = -1
 
         fun bind(pageIndex: Int) {
+            currentPageIndex = pageIndex
+            
             // Check cache first
             val cacheKey = MemoryManager.createPageKey(documentKey, pageIndex)
             val cachedBitmap = MemoryManager.getBitmap(cacheKey)
             
-            if (cachedBitmap != null) {
-                // Use cached bitmap
+            if (cachedBitmap != null && !cachedBitmap.isRecycled) {
                 binding.imagePage.setImageBitmap(cachedBitmap)
+                binding.textPageNumber.text = "Page ${pageIndex + 1}"
+                return
+            }
+            
+            // Check rendered pages
+            val renderedBitmap = renderedPages[pageIndex]
+            if (renderedBitmap != null && !renderedBitmap.isRecycled) {
+                binding.imagePage.setImageBitmap(renderedBitmap)
                 binding.textPageNumber.text = "Page ${pageIndex + 1}"
                 return
             }
@@ -96,17 +101,6 @@ class PdfPagesAdapter(
                 try {
                     // Trim cache if memory is low
                     MemoryManager.trimCacheIfNeeded()
-            currentPageIndex = pageIndex
-            
-            pdfRenderer?.let { renderer ->
-                try {
-                    // Check if page is already rendered
-                    val cachedBitmap = renderedPages[pageIndex]
-                    if (cachedBitmap != null && !cachedBitmap.isRecycled) {
-                        binding.imagePage.setImageBitmap(cachedBitmap)
-                        binding.textPageNumber.text = "Page ${pageIndex + 1}"
-                        return
-                    }
                     
                     val page = renderer.openPage(pageIndex)
                     
@@ -133,8 +127,6 @@ class PdfPagesAdapter(
         }
         
         fun clearImage() {
-
-        fun recycle() {
             binding.imagePage.setImageBitmap(null)
         }
     }

@@ -1,9 +1,6 @@
 package com.officesuite.app.ui.pptx
 
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -15,13 +12,12 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
-import com.officesuite.app.MainActivity
 import androidx.recyclerview.widget.RecyclerView
+import com.officesuite.app.MainActivity
 import com.officesuite.app.R
 import com.officesuite.app.databinding.FragmentPptxViewerBinding
 import com.officesuite.app.utils.ErrorHandler
 import com.officesuite.app.utils.FileUtils
-import com.officesuite.app.utils.MemoryManager
 import com.officesuite.app.utils.Result
 import com.officesuite.app.utils.ShareUtils
 import kotlinx.coroutines.Dispatchers
@@ -74,9 +70,6 @@ class PptxViewerFragment : Fragment() {
         binding.toolbar.apply {
             setNavigationOnClickListener {
                 findNavController().navigateUp()
-                @Suppress("DEPRECATION")
-                requireActivity().onBackPressed()
-                requireActivity().onBackPressedDispatcher.onBackPressed()
             }
             inflateMenu(R.menu.menu_pptx_viewer)
             
@@ -88,8 +81,12 @@ class PptxViewerFragment : Fragment() {
                 when (item.itemId) {
                     R.id.action_pip -> {
                         enterPipMode()
+                        true
+                    }
                     R.id.action_slideshow -> {
                         startSlideshow()
+                        true
+                    }
                     R.id.action_edit -> {
                         openEditor()
                         true
@@ -147,15 +144,10 @@ class PptxViewerFragment : Fragment() {
     }
     
     private fun navigateToNextSlide() {
-        if (currentSlide < slideImages.size - 1) {
+        if (currentSlide < totalSlides - 1) {
             currentSlide++
             binding.recyclerSlides.smoothScrollToPosition(currentSlide)
             updateSlideInfo()
-            if (currentSlide < totalSlides - 1) {
-                currentSlide++
-                binding.recyclerSlides.smoothScrollToPosition(currentSlide)
-                updateSlideInfo()
-            }
         }
     }
 
@@ -165,18 +157,14 @@ class PptxViewerFragment : Fragment() {
             
             lifecycleScope.launch {
                 val result = Result.runCatchingSuspend {
-                    val file = withContext(Dispatchers.IO) {
+                    withContext(Dispatchers.IO) {
                         FileUtils.copyToCache(requireContext(), uri)
                     }
-                    
+                }
+                
+                result.onSuccess { file ->
                     if (file != null) {
-                        withContext(Dispatchers.IO) {
-                            loadSlides(file)
-                        }
-                        file
-                    } else {
-                        throw IllegalStateException("Could not read file")
-                    cachedFile?.let { file ->
+                        cachedFile = file
                         binding.toolbar.title = file.name
                         
                         // Create on-demand adapter - slides are rendered as they become visible
@@ -190,18 +178,10 @@ class PptxViewerFragment : Fragment() {
                             }
                         }
                         binding.recyclerSlides.adapter = slideAdapter
+                    } else {
+                        binding.progressBar.visibility = View.GONE
+                        ErrorHandler.showErrorToast(requireContext(), ErrorHandler.ErrorType.FILE_READ_ERROR)
                     }
-                }
-                
-                result.onSuccess { file ->
-                    cachedFile = file
-                    binding.toolbar.title = file.name
-                    
-                    val adapter = SlideAdapter(slideImages)
-                    binding.recyclerSlides.adapter = adapter
-                    
-                    updateSlideInfo()
-                    binding.progressBar.visibility = View.GONE
                 }.onError { error ->
                     binding.progressBar.visibility = View.GONE
                     ErrorHandler.showErrorToast(requireContext(), error.exception)
@@ -210,90 +190,8 @@ class PptxViewerFragment : Fragment() {
         }
     }
 
-    /**
-     * Loads slides from a PPTX file and converts them to bitmaps for display.
-     * Uses MemoryManager for efficient memory handling.
-     * 
-     * @param file The PPTX file to load
-     */
-    private fun loadSlides(file: File) {
-        slideImages.clear()
-        
-        // Trim cache if memory is low before loading slides
-        MemoryManager.trimCacheIfNeeded()
-        
-        try {
-            val slideShow = XMLSlideShow(FileInputStream(file))
-            
-            // Use standard 16:9 presentation dimensions (1920x1080 scaled down)
-            val slideWidth = 960
-            val slideHeight = 540
-            
-            for (slide in slideShow.slides) {
-                val bitmap = Bitmap.createBitmap(
-                    slideWidth,
-                    slideHeight,
-                    Bitmap.Config.ARGB_8888
-                )
-                val canvas = Canvas(bitmap)
-                canvas.drawColor(Color.WHITE)
-                
-                // Extract text content from the slide
-                val textPaint = android.graphics.Paint().apply {
-                    color = Color.BLACK
-                    textSize = 24f
-                    isAntiAlias = true
-                }
-                
-                val titlePaint = android.graphics.Paint().apply {
-                    color = Color.BLACK
-                    textSize = 36f
-                    textAlign = android.graphics.Paint.Align.CENTER
-                    isAntiAlias = true
-                }
-                
-                val slideNumber = slideImages.size + 1
-                
-                // Try to extract slide title and content
-                var yPosition = 60f
-                var hasContent = false
-                
-                for (shape in slide.shapes) {
-                    if (shape is org.apache.poi.xslf.usermodel.XSLFTextShape) {
-                        val text = shape.text
-                        if (text.isNotBlank()) {
-                            hasContent = true
-                            // Draw first text as title, rest as content
-                            if (yPosition == 60f) {
-                                canvas.drawText(text.take(40), slideWidth / 2f, yPosition, titlePaint)
-                            } else {
-                                canvas.drawText(text.take(50), 30f, yPosition, textPaint)
-                            }
-                            yPosition += 40f
-                            if (yPosition > slideHeight - 80) break
-                        }
-                    }
-                }
-                
-                // If no content found, show placeholder
-                if (!hasContent) {
-                    canvas.drawText(
-                        "Slide $slideNumber",
-                        slideWidth / 2f,
-                        slideHeight / 2f,
-                        titlePaint
-                    )
-                }
-                
-                slideImages.add(bitmap)
-            }
-            
-            slideShow.close()
-        } catch (e: Exception) {
-            ErrorHandler.logError("PptxViewer", "Error loading slides", e)
-        }
     private fun updateSlideInfo() {
-        binding.textSlideInfo.text = "Slide ${currentSlide + 1} of $totalSlides"
+        binding.textSlideInfo.text = getString(R.string.slide_of, currentSlide + 1, totalSlides)
     }
 
     private fun openEditor() {
@@ -366,9 +264,6 @@ class PptxViewerFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        // Recycle all bitmaps using MemoryManager
-        MemoryManager.recycleBitmaps(slideImages)
-        slideImages.clear()
         slideAdapter?.close()
         slideAdapter = null
         _binding = null
