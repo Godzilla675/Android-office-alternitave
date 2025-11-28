@@ -163,4 +163,20 @@
             android:defaultValue="false" />
     </fragment>
 
+    <!-- Document Statistics Fragment (AI Features) -->
+    <fragment
+        android:id="@+id/documentStatisticsFragment"
+        android:name="com.officesuite.app.ui.ai.DocumentStatisticsFragment"
+        android:label="@string/document_statistics"
+        tools:layout="@layout/fragment_document_statistics">
+        <argument
+            android:name="file_uri"
+            app:argType="string"
+            android:defaultValue="" />
+        <argument
+            android:name="document_text"
+            app:argType="string"
+            android:defaultValue="" />
+    </fragment>
+
 </navigation>

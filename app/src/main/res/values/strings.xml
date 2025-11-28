@@ -395,4 +395,119 @@
     <string name="annotations_saved">Annotations saved</string>
     <string name="document_saved">Document saved</string>
     <string name="presentation_saved">Presentation saved</string>
+
+    <!-- Phase 2: AI-Powered Document Intelligence -->
+    <string name="ai_features">AI Features</string>
+    <string name="document_summary">Document Summary</string>
+    <string name="smart_search">Smart Search</string>
+    <string name="document_statistics">Document Statistics</string>
+    <string name="key_points">Key Points</string>
+    <string name="action_items">Action Items</string>
+    <string name="word_count">Word Count</string>
+    <string name="character_count">Character Count</string>
+    <string name="sentence_count">Sentence Count</string>
+    <string name="paragraph_count">Paragraph Count</string>
+    <string name="reading_time">Reading Time</string>
+    <string name="speaking_time">Speaking Time</string>
+    <string name="readability_score">Readability Score</string>
+    <string name="top_keywords">Top Keywords</string>
+    <string name="generating_summary">Generating summary...</string>
+    <string name="analyzing_document">Analyzing document...</string>
+    <string name="minutes">%1$d min</string>
+
+    <!-- Phase 2: Advanced PDF Features -->
+    <string name="pdf_tools">PDF Tools</string>
+    <string name="compare_pdfs">Compare PDFs</string>
+    <string name="add_watermark">Add Watermark</string>
+    <string name="watermark_text">Watermark Text</string>
+    <string name="watermark_opacity">Opacity</string>
+    <string name="watermark_position">Position</string>
+    <string name="pdf_metadata">PDF Metadata</string>
+    <string name="edit_metadata">Edit Metadata</string>
+    <string name="pdf_title">Title</string>
+    <string name="pdf_author">Author</string>
+    <string name="pdf_subject">Subject</string>
+    <string name="pdf_keywords">Keywords</string>
+    <string name="optimize_pdf">Optimize PDF</string>
+    <string name="flatten_pdf">Flatten PDF</string>
+    <string name="bates_numbering">Bates Numbering</string>
+    <string name="comparison_result">Comparison Result</string>
+    <string name="pdfs_identical">PDFs are identical</string>
+    <string name="pdfs_different">PDFs have differences</string>
+    <string name="similarity">Similarity: %1$d%%</string>
+    <string name="optimization_complete">Optimization complete</string>
+    <string name="size_reduced">Size reduced by %1$d%%</string>
+
+    <!-- Phase 2: Spreadsheet Features -->
+    <string name="spreadsheet_tools">Spreadsheet Tools</string>
+    <string name="create_chart">Create Chart</string>
+    <string name="chart_type">Chart Type</string>
+    <string name="bar_chart">Bar Chart</string>
+    <string name="line_chart">Line Chart</string>
+    <string name="pie_chart">Pie Chart</string>
+    <string name="area_chart">Area Chart</string>
+    <string name="scatter_chart">Scatter Chart</string>
+    <string name="conditional_formatting">Conditional Formatting</string>
+    <string name="add_rule">Add Rule</string>
+    <string name="format_cells">Format Cells</string>
+    <string name="freeze_panes">Freeze Panes</string>
+    <string name="freeze_rows">Freeze Rows</string>
+    <string name="freeze_columns">Freeze Columns</string>
+    <string name="sort_data">Sort Data</string>
+    <string name="filter_data">Filter Data</string>
+    <string name="find_replace">Find &amp; Replace</string>
+    <string name="merge_cells">Merge Cells</string>
+    <string name="unmerge_cells">Unmerge Cells</string>
+    <string name="cell_comment">Cell Comment</string>
+    <string name="number_format">Number Format</string>
+    <string name="currency">Currency</string>
+    <string name="percentage">Percentage</string>
+    <string name="date_format">Date</string>
+    <string name="ascending">Ascending</string>
+    <string name="descending">Descending</string>
+
+    <!-- Phase 2: Presentation Features -->
+    <string name="presentation_tools">Presentation Tools</string>
+    <string name="slide_transitions">Slide Transitions</string>
+    <string name="apply_transition">Apply Transition</string>
+    <string name="transition_none">None</string>
+    <string name="transition_fade">Fade</string>
+    <string name="transition_push">Push</string>
+    <string name="transition_wipe">Wipe</string>
+    <string name="transition_speed">Transition Speed</string>
+    <string name="speed_slow">Slow</string>
+    <string name="speed_medium">Medium</string>
+    <string name="speed_fast">Fast</string>
+    <string name="speaker_notes">Speaker Notes</string>
+    <string name="edit_notes">Edit Notes</string>
+    <string name="no_notes">No speaker notes</string>
+    <string name="slide_sorter">Slide Sorter</string>
+    <string name="reorder_slides">Reorder Slides</string>
+    <string name="duplicate_slide">Duplicate Slide</string>
+    <string name="presentation_stats">Presentation Statistics</string>
+    <string name="slide_count">Slides: %1$d</string>
+    <string name="estimated_duration">Estimated Duration: %1$d min</string>
+    <string name="slides_with_notes">Slides with Notes: %1$d</string>
+
+    <!-- Phase 2: Document Automation -->
+    <string name="automation_tools">Automation Tools</string>
+    <string name="mail_merge">Mail Merge</string>
+    <string name="select_template">Select Template</string>
+    <string name="select_data_file">Select Data File</string>
+    <string name="start_merge">Start Merge</string>
+    <string name="merge_progress">Merging %1$d of %2$d...</string>
+    <string name="mail_merge_complete">Merge complete: %1$d documents created</string>
+    <string name="batch_processing">Batch Processing</string>
+    <string name="select_files">Select Files</string>
+    <string name="select_operations">Select Operations</string>
+    <string name="start_batch">Start Batch</string>
+    <string name="batch_complete">Batch complete: %1$d files processed</string>
+    <string name="document_templates">Document Templates</string>
+    <string name="fill_placeholders">Fill Placeholders</string>
+    <string name="workflow_automation">Workflow Automation</string>
+    <string name="create_workflow">Create Workflow</string>
+    <string name="run_workflow">Run Workflow</string>
+    <string name="validate_document">Validate Document</string>
+    <string name="validation_passed">Validation Passed</string>
+    <string name="validation_failed">Validation Failed</string>
 </resources>
