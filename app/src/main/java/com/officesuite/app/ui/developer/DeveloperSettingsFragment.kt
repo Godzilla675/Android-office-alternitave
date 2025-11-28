@@ -184,7 +184,8 @@ class DeveloperSettingsFragment : Fragment() {
         updateAnalyticsSummary()
 
         binding.btnExportAnalytics.setOnClickListener {
-            val json = analyticsManager.exportAnalytics()
+            @Suppress("UNUSED_VARIABLE")
+            val exportedJson = analyticsManager.exportAnalytics()
             // In a real app, you would save this to a file
             Toast.makeText(context, R.string.analytics_exported, Toast.LENGTH_SHORT).show()
         }

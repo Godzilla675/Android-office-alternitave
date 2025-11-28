@@ -154,10 +154,12 @@ class BusinessCardScanner(private val ocrManager: OcrManager) {
         return websites.distinct()
     }
 
+    @Suppress("UNUSED_PARAMETER")
     private fun extractName(
         lines: List<String>, 
         blocks: List<com.officesuite.app.ocr.TextBlock>
     ): String? {
+        // blocks parameter reserved for future spatial analysis of text blocks
         if (lines.isEmpty()) return null
         
         // Try to find a line that looks like a name (typically at the top, 2-4 words)

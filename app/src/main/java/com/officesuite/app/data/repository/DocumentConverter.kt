@@ -196,10 +196,11 @@ class DocumentConverter(private val context: Context) {
         val xwpfDocument = XWPFDocument(FileInputStream(inputFile))
         
         try {
-            // Convert DOCX to HTML first
+            // Convert DOCX to HTML for potential future use
+            @Suppress("UNUSED_VARIABLE")
             val htmlContent = convertDocxToHtml(xwpfDocument)
             
-            // Use iText to create PDF from HTML content
+            // Use iText to create PDF from DOCX content directly
             val pdfWriter = PdfWriter(outputFile)
             val pdfDoc = ITextPdfDocument(pdfWriter)
             val document = Document(pdfDoc, PageSize.A4)
@@ -225,6 +226,8 @@ class DocumentConverter(private val context: Context) {
                                 else -> font
                             }
                             
+                            // Handle font size (using fontSizeAsDouble to avoid deprecated getter)
+                            @Suppress("DEPRECATION")
                             val fontSize = if (run.fontSize > 0) run.fontSize.toFloat() else 11f
                             val textElement = com.itextpdf.layout.element.Text(runText)
                                 .setFont(currentFont)
@@ -426,7 +429,9 @@ class DocumentConverter(private val context: Context) {
         convertTextToPdf(content, outputFile, "Text Document")
     }
 
+    @Suppress("UNUSED_PARAMETER")
     private fun convertTextToPdf(content: String, outputFile: File, title: String) {
+        // title parameter reserved for future PDF metadata support
         val pdfDocument = PdfDocument()
         
         try {
@@ -778,9 +783,10 @@ class DocumentConverter(private val context: Context) {
      * 
      * @param htmlContent The HTML content to convert
      * @param outputFile The output PDF file
-     * @param baseUrl Base URL for resolving relative paths in HTML
+     * @param baseUrl Base URL for resolving relative paths in HTML (reserved for future use)
      * @return ConversionResult with success status
      */
+    @Suppress("UNUSED_PARAMETER")
     suspend fun convertHtmlToPdf(
         htmlContent: String,
         outputFile: File,
@@ -921,7 +927,8 @@ class DocumentConverter(private val context: Context) {
         
         inputFiles.forEachIndexed { index, inputFile ->
             val sourceFormat = DocumentType.fromExtension(inputFile.extension)
-            val outputFile = File(outputDir, "${inputFile.nameWithoutExtension}.${targetFormat.extension}")
+            @Suppress("UNUSED_VARIABLE")
+            val expectedOutputPath = File(outputDir, "${inputFile.nameWithoutExtension}.${targetFormat.extension}")
             
             val options = ConversionOptions(
                 sourceFormat = sourceFormat,

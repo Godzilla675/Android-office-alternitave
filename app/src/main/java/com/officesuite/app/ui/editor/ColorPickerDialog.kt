@@ -79,7 +79,7 @@ class ColorPickerDialog : DialogFragment() {
             setPadding(32, 32, 32, 32)
         }
 
-        COLORS.forEachIndexed { index, color ->
+        COLORS.forEach { color ->
             val colorView = createColorView(requireContext(), color, color == selectedColor) { selectedColor ->
                 onColorSelectedListener?.invoke(selectedColor)
                 dismiss()

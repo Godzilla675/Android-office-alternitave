@@ -163,7 +163,7 @@ class BarcodeScanner {
                     title = contact?.title,
                     phones = contact?.phones?.mapNotNull { it.number } ?: emptyList(),
                     emails = contact?.emails?.mapNotNull { it.address } ?: emptyList(),
-                    addresses = contact?.addresses?.mapNotNull { it.addressLines?.joinToString(", ") } ?: emptyList(),
+                    addresses = contact?.addresses?.mapNotNull { it.addressLines.joinToString(", ") } ?: emptyList(),
                     urls = contact?.urls ?: emptyList()
                 )
             }

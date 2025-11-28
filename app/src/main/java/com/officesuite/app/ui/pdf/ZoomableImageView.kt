@@ -33,8 +33,8 @@ class ZoomableImageView @JvmOverloads constructor(
     
     private val matrixValues = FloatArray(9)
     
-    private lateinit var scaleDetector: ScaleGestureDetector
-    private lateinit var gestureDetector: GestureDetector
+    private var scaleDetector: ScaleGestureDetector
+    private var gestureDetector: GestureDetector
 
     init {
         scaleType = ScaleType.MATRIX

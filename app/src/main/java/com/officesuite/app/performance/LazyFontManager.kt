@@ -178,7 +178,9 @@ object LazyFontManager {
         )
     }
     
+    @Suppress("UNUSED_PARAMETER")
     private fun loadFontAsync(context: Context, fontId: String, fontInfo: FontInfo?) {
+        // fontInfo parameter reserved for custom font loading with specific settings
         val stateFlow = MutableStateFlow<FontLoadState>(FontLoadState.Loading)
         loadingFonts[fontId] = stateFlow
         

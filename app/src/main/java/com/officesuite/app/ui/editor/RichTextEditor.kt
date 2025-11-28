@@ -304,7 +304,6 @@ class RichTextEditor @JvmOverloads constructor(
 
     fun insertBulletList() {
         val start = selectionStart
-        val end = selectionEnd
         val text = text ?: return
         
         // Find line start
@@ -315,7 +314,7 @@ class RichTextEditor @JvmOverloads constructor(
         
         // Insert bullet
         val bullet = "• "
-        (text as Editable).insert(lineStart, bullet)
+        text.insert(lineStart, bullet)
         setSelection(start + bullet.length)
         saveUndoState()
     }
@@ -347,7 +346,7 @@ class RichTextEditor @JvmOverloads constructor(
         
         // Insert number
         val number = "$count. "
-        (text as Editable).insert(lineStart, number)
+        text.insert(lineStart, number)
         setSelection(start + number.length)
         saveUndoState()
     }

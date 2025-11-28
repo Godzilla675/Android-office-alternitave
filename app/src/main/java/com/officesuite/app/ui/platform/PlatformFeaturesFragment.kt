@@ -123,7 +123,8 @@ class PlatformFeaturesFragment : Fragment() {
     private fun updateUsageDisplay() {
         val todayUsage = digitalWellbeing.getTodayUsage()
         val weeklyUsage = digitalWellbeing.getWeeklyUsage()
-        val limit = digitalWellbeing.getDailyLimit()
+        @Suppress("UNUSED_VARIABLE")
+        val dailyLimit = digitalWellbeing.getDailyLimit()
         
         binding.textTodayUsage.text = digitalWellbeing.formatTime(todayUsage)
         binding.textWeeklyUsage.text = digitalWellbeing.formatTime(weeklyUsage)

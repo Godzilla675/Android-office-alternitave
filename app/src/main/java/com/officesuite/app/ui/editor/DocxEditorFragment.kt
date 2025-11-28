@@ -263,7 +263,9 @@ class DocxEditorFragment : Fragment() {
             .show()
     }
 
+    @Suppress("UNUSED_PARAMETER")
     private fun handleImageSelected(uri: Uri) {
+        // uri parameter will be used when full image embedding is implemented
         Toast.makeText(context, "Image selected - inserting into document", Toast.LENGTH_SHORT).show()
         // In a full implementation, this would embed the image in the document
     }

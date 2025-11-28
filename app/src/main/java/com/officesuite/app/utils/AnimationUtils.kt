@@ -260,7 +260,12 @@ object AnimationUtils {
     
     /**
      * Rotates a view (good for refresh or expand/collapse icons).
+     * @param view The view to rotate
+     * @param fromDegrees Starting rotation angle (reserved for future animated rotation from a specific angle)
+     * @param toDegrees Target rotation angle
+     * @param duration Animation duration in milliseconds
      */
+    @Suppress("UNUSED_PARAMETER")
     fun rotate(view: View, fromDegrees: Float, toDegrees: Float, duration: Long = DEFAULT_DURATION) {
         view.animate()
             .rotation(toDegrees)
