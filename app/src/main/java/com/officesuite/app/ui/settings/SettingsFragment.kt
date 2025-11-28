@@ -176,6 +176,9 @@ class SettingsFragment : Fragment() {
             ).show()
         }
         
+        // Platform Features navigation
+        binding.cardPlatformFeatures.setOnClickListener {
+            findNavController().navigate(R.id.platformFeaturesFragment)
         // Developer settings
         binding.btnDeveloperSettings.setOnClickListener {
             findNavController().navigate(R.id.developerSettingsFragment)

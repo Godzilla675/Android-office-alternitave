@@ -36,4 +36,10 @@
     <color name="surface_dark">#1E1E1E</color>
     <color name="text_primary_dark">#E1E1E1</color>
     <color name="text_secondary_dark">#B3B3B3</color>
+    
+    <!-- Status colors -->
+    <color name="colorPrimary">#1976D2</color>
+    <color name="error">#B00020</color>
+    <color name="warning">#FFC107</color>
+    <color name="success">#4CAF50</color>
 </resources>

@@ -700,6 +700,11 @@
 
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- Platform Features Section -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/platform_features"
             <!-- Developer Section -->
             <TextView
                 android:layout_width="wrap_content"
@@ -710,11 +715,17 @@
                 android:textStyle="bold"
                 android:layout_marginBottom="8dp" />
 
+            <!-- Platform Features -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardPlatformFeatures"
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 app:cardCornerRadius="8dp"
+                app:cardElevation="2dp"
+                android:clickable="true"
+                android:focusable="true">
                 app:cardElevation="2dp">
 
                 <LinearLayout
@@ -733,6 +744,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:text="@string/platform_features"
                             android:text="@string/developer_settings"
                             android:textColor="@color/text_primary"
                             android:textSize="16sp" />
@@ -740,12 +752,18 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:text="Digital Wellbeing, Voice Commands, Quick Settings"
                             android:text="Debug mode, beta features, performance"
                             android:textColor="@color/text_secondary"
                             android:textSize="12sp" />
 
                     </LinearLayout>
 
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_arrow"
+                        android:contentDescription="Navigate" />
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnDeveloperSettings"
                         style="@style/Widget.MaterialComponents.Button.TextButton"

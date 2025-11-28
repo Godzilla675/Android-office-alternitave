@@ -25,6 +25,20 @@
         android:label="Home"
         tools:layout="@layout/fragment_home" />
 
+    <!-- Scanner Fragment -->
+    <fragment
+        android:id="@+id/scannerFragment"
+        android:name="com.officesuite.app.ui.scanner.ScannerFragment"
+        android:label="@string/scan_document"
+        tools:layout="@layout/fragment_scanner" />
+
+    <!-- Converter Fragment -->
+    <fragment
+        android:id="@+id/converterFragment"
+        android:name="com.officesuite.app.ui.converter.ConverterFragment"
+        android:label="@string/convert"
+        tools:layout="@layout/fragment_converter" />
+
     <!-- PDF Viewer Fragment -->
     <fragment
         android:id="@+id/pdfViewerFragment"
@@ -185,6 +199,12 @@
         android:name="com.officesuite.app.ui.productivity.ProductivityFragment"
         android:label="@string/productivity" />
 
+    <!-- Platform Features Fragment (Phase 2) -->
+    <fragment
+        android:id="@+id/platformFeaturesFragment"
+        android:name="com.officesuite.app.ui.platform.PlatformFeaturesFragment"
+        android:label="@string/platform_features"
+        tools:layout="@layout/fragment_platform_features" />
     <!-- Developer Settings Fragment (Technical Improvements Phase 2) -->
     <fragment
         android:id="@+id/developerSettingsFragment"

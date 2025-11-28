@@ -717,6 +717,61 @@
     <string name="someone_reacted">%1$s reacted</string>
     <string name="someone_replied">%1$s replied</string>
 
+    <!-- Phase 2: Platform-Specific Features -->
+    <string name="platform_features">Platform Features</string>
+    
+    <!-- Digital Wellbeing -->
+    <string name="digital_wellbeing">Digital Wellbeing</string>
+    <string name="digital_wellbeing_desc">Track and manage your app usage time</string>
+    <string name="today">Today</string>
+    <string name="daily_average">Daily Avg</string>
+    <string name="enable_daily_limit">Enable Daily Limit</string>
+    <string name="daily_limit">Daily Limit</string>
+    <string name="break_reminder">Break Reminder (every hour)</string>
+    <string name="remaining_time">%1$s remaining</string>
+    <string name="view_stats">View Stats</string>
+    <string name="reset">Reset</string>
+    <string name="usage_statistics">Usage Statistics</string>
+    <string name="stats_reset">Statistics reset</string>
+    
+    <!-- Quick Settings Tiles -->
+    <string name="quick_settings_tiles">Quick Settings Tiles</string>
+    <string name="quick_settings_desc">Add tiles to your Quick Settings panel</string>
+    <string name="scanner_tile">Scanner Tile</string>
+    <string name="create_tile">Create Document Tile</string>
+    <string name="convert_tile">Convert Document Tile</string>
+    <string name="tile_enabled_hint">Add the tile from Quick Settings panel</string>
+    
+    <!-- Voice Commands -->
+    <string name="voice_commands">Voice Commands</string>
+    <string name="voice_commands_desc">Control the app with Google Assistant</string>
+    <string name="enable_voice_commands">Enable Voice Commands</string>
+    <string name="confirm_voice_actions">Confirm Before Action</string>
+    <string name="voice_readback">Voice Readback</string>
+    <string name="show_voice_commands">Show Commands</string>
+    
+    <!-- Nearby Share -->
+    <string name="nearby_share">Nearby Share</string>
+    <string name="nearby_share_desc">Quick sharing with nearby devices</string>
+    <string name="show_quick_share">Show Quick Share Option</string>
+    
+    <!-- Desktop Mode -->
+    <string name="desktop_mode">Desktop Mode</string>
+    <string name="desktop_mode_desc">DeX and ChromeOS optimization</string>
+    <string name="dex_mode_active">Samsung DeX Mode Active</string>
+    <string name="chromeos_mode_active">ChromeOS Mode Active</string>
+    <string name="keyboard_mode_active">Keyboard Mode Active</string>
+    <string name="mobile_mode">Mobile Mode</string>
+    <string name="keyboard_connected">Keyboard Connected</string>
+    <string name="no_keyboard">No Keyboard Connected</string>
+    <string name="mouse_connected">Mouse/Trackpad Connected</string>
+    <string name="no_mouse">No Mouse Connected</string>
+    <string name="show_sidebar">Show Sidebar</string>
+    <string name="compact_toolbar">Use Compact Toolbar</string>
+    <string name="enable_multi_window">Enable Multi-Window</string>
+    <string name="enable_drag_drop">Enable Drag &amp; Drop</string>
+    <string name="keyboard_shortcuts">Keyboard Shortcuts</string>
+    <string name="platform_info">Platform Info</string>
     <!-- Technical Improvements Phase 2 -->
     <!-- Command Palette -->
     <string name="command_palette">Command Palette</string>
