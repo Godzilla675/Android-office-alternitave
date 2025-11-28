@@ -28,6 +28,14 @@ object CommentThreadingManager {
     private var prefs: SharedPreferences? = null
     private val gson = Gson()
     
+    // Pre-compiled regex patterns for mention extraction
+    private val mentionPattern = Regex("""@(\w+)|@\[([^\]]+)\]""")
+    private val mentionHighlightPattern = Regex("""(@\w+|@\[[^\]]+\])""")
+    
+    // Cached TypeTokens for JSON parsing
+    private val commentsMapType = object : TypeToken<Map<String, Comment>>() {}.type
+    private val mentionsMapType = object : TypeToken<Map<String, MentionNotification>>() {}.type
+    
     /**
      * Comment data class with threading support.
      */
@@ -347,7 +355,6 @@ object CommentThreadingManager {
      * Mentions are in the format @username or @[Display Name]
      */
     fun extractMentions(text: String): List<String> {
-        val mentionPattern = Regex("""@(\w+)|@\[([^\]]+)\]""")
         return mentionPattern.findAll(text).mapNotNull { result ->
             result.groupValues[1].takeIf { it.isNotEmpty() }
                 ?: result.groupValues[2].takeIf { it.isNotEmpty() }
@@ -359,8 +366,7 @@ object CommentThreadingManager {
      * Returns the text with mentions wrapped in a format suitable for display.
      */
     fun formatMentions(text: String): String {
-        val mentionPattern = Regex("""(@\w+|@\[[^\]]+\])""")
-        return mentionPattern.replace(text) { result ->
+        return mentionHighlightPattern.replace(text) { result ->
             "<mention>${result.value}</mention>"
         }
     }
@@ -460,9 +466,8 @@ object CommentThreadingManager {
     
     private fun getAllCommentsMap(): Map<String, Comment> {
         val json = getPrefs().getString(KEY_COMMENTS, null) ?: return emptyMap()
-        val type = object : TypeToken<Map<String, Comment>>() {}.type
         return try {
-            gson.fromJson(json, type) ?: emptyMap()
+            gson.fromJson(json, commentsMapType) ?: emptyMap()
         } catch (e: Exception) {
             emptyMap()
         }
@@ -480,9 +485,8 @@ object CommentThreadingManager {
     
     private fun getAllMentionsMap(): Map<String, MentionNotification> {
         val json = getPrefs().getString(KEY_MENTIONS, null) ?: return emptyMap()
-        val type = object : TypeToken<Map<String, MentionNotification>>() {}.type
         return try {
-            gson.fromJson(json, type) ?: emptyMap()
+            gson.fromJson(json, mentionsMapType) ?: emptyMap()
         } catch (e: Exception) {
             emptyMap()
         }

@@ -30,6 +30,11 @@ class FocusTimerTest {
     }
     
     @Test
+    fun `focus master sessions required is 10`() {
+        assertEquals(10, FocusTimer.FOCUS_MASTER_SESSIONS_REQUIRED)
+    }
+    
+    @Test
     fun `TimerState enum has correct values`() {
         val states = FocusTimer.TimerState.entries
         assertEquals(4, states.size)

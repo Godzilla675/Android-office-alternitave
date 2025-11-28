@@ -178,7 +178,10 @@ class ProductivityFragment : Fragment(), FocusTimer.FocusTimerListener {
                         text = "Pause"
                         setOnClickListener { onPauseClicked() }
                         visibility = View.GONE
-                        (layoutParams as? LinearLayout.LayoutParams)?.marginStart = 16
+                        layoutParams = LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.WRAP_CONTENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT
+                        ).apply { marginStart = 16 }
                     }
                     addView(pauseButton)
                     
@@ -186,7 +189,10 @@ class ProductivityFragment : Fragment(), FocusTimer.FocusTimerListener {
                         text = "Skip"
                         setOnClickListener { onSkipClicked() }
                         visibility = View.GONE
-                        (layoutParams as? LinearLayout.LayoutParams)?.marginStart = 16
+                        layoutParams = LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.WRAP_CONTENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT
+                        ).apply { marginStart = 16 }
                     }
                     addView(skipButton)
                 }

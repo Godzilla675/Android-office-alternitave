@@ -36,6 +36,9 @@ class FocusTimer(context: Context) {
         const val DEFAULT_SHORT_BREAK_DURATION = 5
         const val DEFAULT_LONG_BREAK_DURATION = 15
         const val DEFAULT_SESSIONS_BEFORE_LONG_BREAK = 4
+        
+        // Number of sessions required for focus master achievement
+        const val FOCUS_MASTER_SESSIONS_REQUIRED = 10
     }
     
     private val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -376,7 +379,7 @@ class FocusTimer(context: Context) {
     }
     
     private fun checkFocusAchievements(totalSessions: Long) {
-        if (totalSessions >= 10) {
+        if (totalSessions >= FOCUS_MASTER_SESSIONS_REQUIRED) {
             ProductivityManager.unlockAchievement(ProductivityManager.Achievement.FOCUS_MASTER)
         }
     }

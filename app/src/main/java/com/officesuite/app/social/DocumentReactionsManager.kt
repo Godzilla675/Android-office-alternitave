@@ -23,6 +23,9 @@ object DocumentReactionsManager {
     private var prefs: SharedPreferences? = null
     private val gson = Gson()
     
+    // Cached TypeToken for JSON parsing
+    private val reactionsMapType = object : TypeToken<Map<String, DocumentReactions>>() {}.type
+    
     /**
      * Available reaction types with emoji and display name.
      */
@@ -280,9 +283,8 @@ object DocumentReactionsManager {
     
     private fun getAllReactionsMap(): Map<String, DocumentReactions> {
         val json = getPrefs().getString(KEY_REACTIONS, null) ?: return emptyMap()
-        val type = object : TypeToken<Map<String, DocumentReactions>>() {}.type
         return try {
-            gson.fromJson(json, type) ?: emptyMap()
+            gson.fromJson(json, reactionsMapType) ?: emptyMap()
         } catch (e: Exception) {
             emptyMap()
         }
