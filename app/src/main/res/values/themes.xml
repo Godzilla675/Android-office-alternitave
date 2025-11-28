@@ -26,5 +26,23 @@
     <style name="Theme.OfficeSuite.Reading" parent="Theme.OfficeSuite">
         <item name="android:windowBackground">@color/reading_mode_bg</item>
     </style>
+    
+    <!-- Bottom Sheet theme for Command Palette -->
+    <style name="Theme.OfficeSuite.BottomSheet" parent="Theme.MaterialComponents.DayNight.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/Widget.OfficeSuite.BottomSheet</item>
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorSecondary">@color/secondary</item>
+    </style>
+    
+    <style name="Widget.OfficeSuite.BottomSheet" parent="Widget.MaterialComponents.BottomSheet.Modal">
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearance.OfficeSuite.BottomSheet</item>
+        <item name="backgroundTint">@color/background_light</item>
+    </style>
+    
+    <style name="ShapeAppearance.OfficeSuite.BottomSheet" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">16dp</item>
+        <item name="cornerSizeTopRight">16dp</item>
+    </style>
 
 </resources>

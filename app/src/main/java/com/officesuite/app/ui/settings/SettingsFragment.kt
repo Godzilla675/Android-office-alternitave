@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.officesuite.app.R
 import com.officesuite.app.data.repository.ColorBlindMode
 import com.officesuite.app.data.repository.FontSize
@@ -173,6 +174,11 @@ class SettingsFragment : Fragment() {
                 if (goal > 0) "Word goal set to $goal" else "Word goal cleared", 
                 android.widget.Toast.LENGTH_SHORT
             ).show()
+        }
+        
+        // Developer settings
+        binding.btnDeveloperSettings.setOnClickListener {
+            findNavController().navigate(R.id.developerSettingsFragment)
         }
     }
 

@@ -716,4 +716,79 @@
     <string name="someone_commented">%1$s commented</string>
     <string name="someone_reacted">%1$s reacted</string>
     <string name="someone_replied">%1$s replied</string>
+
+    <!-- Technical Improvements Phase 2 -->
+    <!-- Command Palette -->
+    <string name="command_palette">Command Palette</string>
+    <string name="type_command">Type a command...</string>
+    <string name="no_commands_found">No commands found</string>
+    <string name="recent_commands">Recent Commands</string>
+    
+    <!-- Debug Mode -->
+    <string name="debug_mode">Debug Mode</string>
+    <string name="debug_mode_enabled">Debug mode enabled</string>
+    <string name="debug_mode_disabled">Debug mode disabled</string>
+    <string name="export_logs">Export Logs</string>
+    <string name="clear_logs">Clear Logs</string>
+    <string name="logs_exported">Logs exported successfully</string>
+    <string name="logs_cleared">Logs cleared</string>
+    <string name="log_level">Log Level</string>
+    
+    <!-- Beta Features -->
+    <string name="beta_features">Beta Features</string>
+    <string name="experimental_features">Experimental Features</string>
+    <string name="beta_feature_enabled">%1$s enabled</string>
+    <string name="beta_feature_disabled">%1$s disabled</string>
+    <string name="experimental_warning">Experimental features may be unstable</string>
+    
+    <!-- Performance -->
+    <string name="performance">Performance</string>
+    <string name="performance_monitor">Performance Monitor</string>
+    <string name="memory_usage">Memory Usage</string>
+    <string name="fps">FPS</string>
+    <string name="gpu_acceleration">GPU Acceleration</string>
+    <string name="cache_stats">Cache Statistics</string>
+    <string name="clear_cache">Clear Cache</string>
+    <string name="cache_cleared">Cache cleared</string>
+    
+    <!-- Custom Shortcuts -->
+    <string name="custom_shortcuts">Custom Shortcuts</string>
+    <string name="keyboard_shortcuts">Keyboard Shortcuts</string>
+    <string name="edit_shortcut">Edit Shortcut</string>
+    <string name="reset_shortcut">Reset to Default</string>
+    <string name="reset_all_shortcuts">Reset All Shortcuts</string>
+    <string name="shortcut_conflict">Shortcut conflicts with %1$s</string>
+    <string name="shortcut_updated">Shortcut updated</string>
+    <string name="press_keys">Press keys...</string>
+    
+    <!-- Usage Analytics -->
+    <string name="usage_analytics">Usage Analytics</string>
+    <string name="analytics_dashboard">Analytics Dashboard</string>
+    <string name="documents_viewed_stat">Documents Viewed</string>
+    <string name="documents_edited_stat">Documents Edited</string>
+    <string name="words_written_stat">Words Written</string>
+    <string name="scans_stat">Scans</string>
+    <string name="conversions_stat">Conversions</string>
+    <string name="active_days">Active Days</string>
+    <string name="export_analytics">Export Analytics</string>
+    <string name="analytics_exported">Analytics exported</string>
+    <string name="clear_analytics">Clear Analytics Data</string>
+    <string name="analytics_cleared">Analytics data cleared</string>
+    <string name="privacy_notice">Data is stored locally on your device</string>
+    
+    <!-- Document Indexing -->
+    <string name="document_indexing">Document Indexing</string>
+    <string name="indexing_document">Indexing %1$s...</string>
+    <string name="index_complete">Indexing complete</string>
+    <string name="rebuild_index">Rebuild Index</string>
+    <string name="clear_index">Clear Index</string>
+    <string name="indexed_documents">Indexed Documents: %1$d</string>
+    <string name="search_all_documents">Search all documents</string>
+    
+    <!-- Developer Settings -->
+    <string name="developer_settings">Developer Settings</string>
+    <string name="developer_options">Developer Options</string>
+    <string name="show_debug_info">Show Debug Info</string>
+    <string name="performance_overlay">Performance Overlay</string>
+    <string name="enable_verbose_logging">Enable Verbose Logging</string>
 </resources>
