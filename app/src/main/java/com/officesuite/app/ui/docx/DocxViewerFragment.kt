@@ -387,7 +387,8 @@ class DocxViewerFragment : Fragment() {
     }
 
     private fun convertToPdf() {
-        if (fileUri == null || cachedFile == null) {
+        val file = cachedFile
+        if (fileUri == null || file == null) {
             Toast.makeText(context, "No file loaded", Toast.LENGTH_SHORT).show()
             return
         }
@@ -400,7 +401,7 @@ class DocxViewerFragment : Fragment() {
                     sourceFormat = com.officesuite.app.data.model.DocumentType.DOCX,
                     targetFormat = com.officesuite.app.data.model.DocumentType.PDF
                 )
-                documentConverter.convert(cachedFile!!, options)
+                documentConverter.convert(file, options)
             }
             
             result.onSuccess { conversionResult ->
