@@ -144,15 +144,29 @@ class SpreadsheetTools(private val context: Context) {
         }
     }
 
+    /**
+     * Comparison operator byte codes for Apache POI conditional formatting
+     * These values correspond to org.apache.poi.ss.usermodel.ComparisonOperator constants
+     */
+    private companion object {
+        const val CF_OPERATOR_BETWEEN: Byte = 1
+        const val CF_OPERATOR_EQUAL: Byte = 3
+        const val CF_OPERATOR_GREATER_THAN: Byte = 5
+        const val CF_OPERATOR_GREATER_OR_EQUAL: Byte = 7
+        const val CF_OPERATOR_LESS_THAN: Byte = 6
+        const val CF_OPERATOR_LESS_OR_EQUAL: Byte = 8
+        const val CF_OPERATOR_NOT_EQUAL: Byte = 4
+    }
+
     private fun getComparisonOperator(op: ComparisonOperator): Byte {
         return when (op) {
-            ComparisonOperator.EQUAL -> ComparisonOperator.EQUAL.ordinal.toByte()
-            ComparisonOperator.NOT_EQUAL -> 2.toByte()
-            ComparisonOperator.GREATER_THAN -> 3.toByte()
-            ComparisonOperator.LESS_THAN -> 4.toByte()
-            ComparisonOperator.GREATER_OR_EQUAL -> 5.toByte()
-            ComparisonOperator.LESS_OR_EQUAL -> 6.toByte()
-            ComparisonOperator.BETWEEN -> 1.toByte()
+            ComparisonOperator.EQUAL -> CF_OPERATOR_EQUAL
+            ComparisonOperator.NOT_EQUAL -> CF_OPERATOR_NOT_EQUAL
+            ComparisonOperator.GREATER_THAN -> CF_OPERATOR_GREATER_THAN
+            ComparisonOperator.LESS_THAN -> CF_OPERATOR_LESS_THAN
+            ComparisonOperator.GREATER_OR_EQUAL -> CF_OPERATOR_GREATER_OR_EQUAL
+            ComparisonOperator.LESS_OR_EQUAL -> CF_OPERATOR_LESS_OR_EQUAL
+            ComparisonOperator.BETWEEN -> CF_OPERATOR_BETWEEN
         }
     }
 

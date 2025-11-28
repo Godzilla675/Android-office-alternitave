@@ -14,7 +14,14 @@ class DocumentAnalyzer(private val context: Context) {
     companion object {
         private const val AVERAGE_READING_SPEED_WPM = 200
         private const val AVERAGE_SPEAKING_SPEED_WPM = 150
-        private const val SUMMARY_RATIO = 0.2 // Summarize to 20% of original
+        
+        /**
+         * Target ratio for summary length relative to original document.
+         * Default 0.2 means summary will be ~20% of original length.
+         * This can be adjusted based on document type and user preference.
+         */
+        private const val SUMMARY_RATIO = 0.2
+        
         private const val MIN_SUMMARY_SENTENCES = 3
         private const val MAX_SUMMARY_SENTENCES = 10
     }

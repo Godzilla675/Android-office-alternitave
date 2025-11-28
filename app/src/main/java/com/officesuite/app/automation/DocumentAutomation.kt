@@ -185,7 +185,7 @@ class DocumentAutomation(private val context: Context) {
             org.apache.poi.ss.usermodel.CellType.STRING -> cell.stringCellValue
             org.apache.poi.ss.usermodel.CellType.NUMERIC -> {
                 if (org.apache.poi.ss.usermodel.DateUtil.isCellDateFormatted(cell)) {
-                    java.text.SimpleDateFormat("yyyy-MM-dd").format(cell.dateCellValue)
+                    java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(cell.dateCellValue)
                 } else {
                     val num = cell.numericCellValue
                     if (num == num.toLong().toDouble()) num.toLong().toString() else num.toString()
