@@ -2,6 +2,8 @@ package com.officesuite.app.ui.markdown
 
 import android.net.Uri
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,6 +12,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.officesuite.app.R
+import com.officesuite.app.data.repository.PreferencesRepository
 import com.officesuite.app.databinding.FragmentMarkdownBinding
 import com.officesuite.app.utils.ErrorHandler
 import com.officesuite.app.utils.FileUtils
@@ -20,6 +23,8 @@ import io.noties.markwon.ext.tables.TablePlugin
 import io.noties.markwon.html.HtmlPlugin
 import io.noties.markwon.image.ImagesPlugin
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -31,6 +36,7 @@ import java.io.FileOutputStream
  * - WYSIWYG editing with markdown shortcuts
  * - Real-time preview rendering
  * - File save/share functionality
+ * - Auto-save functionality
  * - Enhanced error handling
  */
 class MarkdownFragment : Fragment() {
@@ -42,6 +48,12 @@ class MarkdownFragment : Fragment() {
     private var cachedFile: File? = null
     private var isEditMode = true
     private lateinit var markwon: Markwon
+    private lateinit var preferencesRepository: PreferencesRepository
+    
+    // Auto-save related
+    private var autoSaveJob: Job? = null
+    private var hasUnsavedChanges = false
+    private var lastSavedContent: String = ""
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -55,9 +67,17 @@ class MarkdownFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         
+        preferencesRepository = PreferencesRepository(requireContext())
         setupMarkwon()
         setupToolbar()
         setupClickListeners()
+        setupAutoSave()
+        
+        // Restore saved content if any
+        savedInstanceState?.getString("saved_content")?.let { content ->
+            binding.editContent.setText(content)
+            lastSavedContent = content
+        }
         
         arguments?.getString("file_uri")?.let { uriString ->
             if (uriString.isNotEmpty()) {
@@ -69,8 +89,87 @@ class MarkdownFragment : Fragment() {
                 showEditMode()
             }
         } ?: run {
-            binding.toolbar.title = "New Document"
-            showEditMode()
+            // Check for template content
+            arguments?.getString("template_content")?.let { templateContent ->
+                binding.editContent.setText(templateContent)
+                lastSavedContent = templateContent
+                arguments?.getString("template_name")?.let { templateName ->
+                    binding.toolbar.title = templateName
+                }
+                showEditMode()
+            } ?: run {
+                binding.toolbar.title = "New Document"
+                showEditMode()
+            }
+        }
+    }
+    
+    private fun setupAutoSave() {
+        binding.editContent.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                val currentContent = s?.toString() ?: ""
+                if (currentContent != lastSavedContent) {
+                    hasUnsavedChanges = true
+                    scheduleAutoSave()
+                }
+            }
+        })
+    }
+    
+    private fun scheduleAutoSave() {
+        if (!preferencesRepository.isAutoSaveEnabled) return
+        
+        autoSaveJob?.cancel()
+        autoSaveJob = lifecycleScope.launch {
+            delay(preferencesRepository.autoSaveIntervalSeconds * 1000L)
+            if (hasUnsavedChanges) {
+                performAutoSave()
+            }
+        }
+    }
+    
+    private suspend fun performAutoSave() {
+        val content = binding.editContent.text.toString()
+        if (content.isEmpty()) return
+        
+        try {
+            if (cachedFile == null) {
+                // Create auto-save file for new documents
+                val timestamp = System.currentTimeMillis()
+                cachedFile = File(FileUtils.getOutputDirectory(requireContext()), "autosave_$timestamp.md")
+            }
+            
+            withContext(Dispatchers.IO) {
+                FileOutputStream(cachedFile!!).use { out ->
+                    out.write(content.toByteArray())
+                }
+            }
+            
+            lastSavedContent = content
+            hasUnsavedChanges = false
+        } catch (e: Exception) {
+            // Silent fail for auto-save, don't disturb user
+            e.printStackTrace()
+        }
+    }
+    
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        // Save current content for configuration changes
+        _binding?.let {
+            outState.putString("saved_content", it.editContent.text.toString())
+        }
+    }
+    
+    override fun onPause() {
+        super.onPause()
+        // Auto-save when leaving fragment
+        if (hasUnsavedChanges && preferencesRepository.isAutoSaveEnabled) {
+            lifecycleScope.launch {
+                performAutoSave()
+            }
         }
     }
 
@@ -173,6 +272,7 @@ class MarkdownFragment : Fragment() {
                 
                 result.onSuccess { (file, content) ->
                     cachedFile = file
+                    lastSavedContent = content
                     binding.toolbar.title = file.name
                     binding.editContent.setText(content)
                     renderPreview(content)
@@ -234,6 +334,8 @@ class MarkdownFragment : Fragment() {
             }
             
             result.onSuccess {
+                lastSavedContent = content
+                hasUnsavedChanges = false
                 Toast.makeText(context, "File saved", Toast.LENGTH_SHORT).show()
             }.onError { error ->
                 ErrorHandler.showErrorToast(requireContext(), error.exception)
@@ -248,6 +350,7 @@ class MarkdownFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        autoSaveJob?.cancel()
         _binding = null
     }
 }

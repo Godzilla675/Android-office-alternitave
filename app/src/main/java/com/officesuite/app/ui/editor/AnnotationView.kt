@@ -162,11 +162,21 @@ class AnnotationView @JvmOverloads constructor(
     }
 
     fun getAnnotations(): List<Annotation> = annotations.toList()
+    
+    fun getRedoStack(): List<Annotation> = redoStack.toList()
 
     fun setAnnotations(newAnnotations: List<Annotation>) {
         annotations.clear()
         annotations.addAll(newAnnotations)
         redoStack.clear()
+        invalidate()
+    }
+    
+    fun setAnnotationsWithRedo(newAnnotations: List<Annotation>, redoAnnotations: List<Annotation>) {
+        annotations.clear()
+        annotations.addAll(newAnnotations)
+        redoStack.clear()
+        redoAnnotations.forEach { redoStack.push(it) }
         invalidate()
     }
 

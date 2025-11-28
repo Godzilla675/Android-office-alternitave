@@ -1,11 +1,16 @@
 package com.officesuite.app.ui.pdf
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -16,14 +21,12 @@ import com.officesuite.app.MainActivity
 import com.officesuite.app.R
 import com.officesuite.app.data.collaboration.CollaborationRepository
 import com.officesuite.app.databinding.FragmentPdfViewerBinding
-import com.officesuite.app.ocr.OcrManager
+import com.officesuite.app.pdf.PdfTextExtractor
 import com.officesuite.app.utils.ErrorHandler
 import com.officesuite.app.ui.collaboration.CommentsDialogFragment
 import com.officesuite.app.utils.FileUtils
-import com.officesuite.app.utils.GestureHandler
 import com.officesuite.app.utils.Result
 import com.officesuite.app.utils.ShareUtils
-import com.officesuite.app.utils.animateFadeIn
 import com.officesuite.app.utils.animateFadeOut
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -35,6 +38,8 @@ import java.io.File
  * Features:
  * - Lazy loading with LRU caching for memory optimization
  * - Swipe gesture navigation between pages
+ * - Text extraction and copy
+ * - Text search within document
  * - OCR support for text extraction
  * - Share functionality
  */
@@ -50,6 +55,7 @@ class PdfViewerFragment : Fragment() {
     private var pdfAdapter: PdfPagesAdapter? = null
     private var documentId: String = ""
     private lateinit var collaborationRepository: CollaborationRepository
+    private lateinit var pdfTextExtractor: PdfTextExtractor
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -64,6 +70,7 @@ class PdfViewerFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         
         collaborationRepository = CollaborationRepository(requireContext())
+        pdfTextExtractor = PdfTextExtractor()
         
         arguments?.getString("file_uri")?.let { uriString ->
             fileUri = Uri.parse(uriString)
@@ -110,6 +117,14 @@ class PdfViewerFragment : Fragment() {
             
             setOnMenuItemClickListener { item ->
                 when (item.itemId) {
+                    R.id.action_search -> {
+                        showSearchDialog()
+                        true
+                    }
+                    R.id.action_copy_text -> {
+                        copyCurrentPageText()
+                        true
+                    }
                     R.id.action_pip -> {
                         enterPipMode()
                         true
@@ -330,6 +345,84 @@ class PdfViewerFragment : Fragment() {
                 Toast.makeText(context, "OCR requires image input. Please use scanner.", Toast.LENGTH_LONG).show()
             } catch (e: Exception) {
                 ErrorHandler.showErrorToast(requireContext(), e)
+            }
+        }
+    }
+    
+    private fun showSearchDialog() {
+        val editText = EditText(requireContext()).apply {
+            hint = "Enter search text"
+            setPadding(48, 32, 48, 32)
+        }
+        
+        AlertDialog.Builder(requireContext())
+            .setTitle(R.string.search)
+            .setView(editText)
+            .setPositiveButton(R.string.search) { _, _ ->
+                val query = editText.text.toString().trim()
+                if (query.isNotEmpty()) {
+                    performSearch(query)
+                }
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+    
+    private fun performSearch(query: String) {
+        cachedFile?.let { file ->
+            lifecycleScope.launch {
+                binding.progressBar.visibility = View.VISIBLE
+                
+                val results = pdfTextExtractor.searchText(file, query)
+                
+                binding.progressBar.visibility = View.GONE
+                
+                if (results.isEmpty()) {
+                    Toast.makeText(context, "No results found for \"$query\"", Toast.LENGTH_SHORT).show()
+                } else {
+                    showSearchResults(query, results)
+                }
+            }
+        }
+    }
+    
+    private fun showSearchResults(query: String, results: List<PdfTextExtractor.SearchResult>) {
+        val resultItems = results.map { result ->
+            "Page ${result.pageNumber} (${result.matchCount} match${if (result.matchCount > 1) "es" else ""})\n${result.contextSnippet}"
+        }.toTypedArray()
+        
+        AlertDialog.Builder(requireContext())
+            .setTitle("Search Results: \"$query\"")
+            .setItems(resultItems) { _, which ->
+                // Navigate to the selected page
+                val pageIndex = results[which].pageNumber - 1
+                currentPage = pageIndex
+                binding.recyclerPdfPages.scrollToPosition(pageIndex)
+                updatePageInfo()
+            }
+            .setPositiveButton("OK", null)
+            .show()
+    }
+    
+    private fun copyCurrentPageText() {
+        cachedFile?.let { file ->
+            lifecycleScope.launch {
+                binding.progressBar.visibility = View.VISIBLE
+                
+                val result = pdfTextExtractor.extractTextFromPage(file, currentPage + 1)
+                
+                binding.progressBar.visibility = View.GONE
+                
+                if (result.success && !result.text.isNullOrEmpty()) {
+                    val clipboard = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                    val clip = ClipData.newPlainText("PDF Text", result.text)
+                    clipboard.setPrimaryClip(clip)
+                    Toast.makeText(context, "Text copied to clipboard", Toast.LENGTH_SHORT).show()
+                } else if (result.text.isNullOrEmpty()) {
+                    Toast.makeText(context, "No text found on this page", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(context, "Failed to extract text: ${result.errorMessage}", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }

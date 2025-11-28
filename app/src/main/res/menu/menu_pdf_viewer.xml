@@ -3,10 +3,22 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/action_search"
+        android:icon="@drawable/ic_search"
+        android:title="@string/search"
+        app:showAsAction="ifRoom" />
+
+    <item
         android:id="@+id/action_pip"
         android:icon="@drawable/ic_pip"
         android:title="@string/pip_mode"
         app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_copy_text"
+        android:icon="@drawable/ic_text"
+        android:title="@string/copy_text"
+        app:showAsAction="never" />
 
     <item
         android:id="@+id/action_comments"

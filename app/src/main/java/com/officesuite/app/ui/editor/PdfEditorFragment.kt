@@ -57,6 +57,8 @@ class PdfEditorFragment : Fragment() {
 
     // Store annotations per page
     private val pageAnnotations = mutableMapOf<Int, List<AnnotationView.Annotation>>()
+    // Store redo stacks per page for undo persistence
+    private val pageRedoStacks = mutableMapOf<Int, List<AnnotationView.Annotation>>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -231,8 +233,9 @@ class PdfEditorFragment : Fragment() {
             strokeWidth = currentStrokeWidth
             onAnnotationChangeListener = {
                 updateUndoRedoButtons()
-                // Save current page annotations
+                // Save current page annotations and redo stack
                 pageAnnotations[currentPage] = getAnnotations()
+                pageRedoStacks[currentPage] = getRedoStack()
             }
         }
     }
@@ -249,8 +252,9 @@ class PdfEditorFragment : Fragment() {
                     val layoutManager = recyclerView.layoutManager as LinearLayoutManager
                     val firstVisiblePosition = layoutManager.findFirstVisibleItemPosition()
                     if (firstVisiblePosition != RecyclerView.NO_POSITION && firstVisiblePosition != currentPage) {
-                        // Save current page annotations before switching
+                        // Save current page annotations and redo stack before switching
                         pageAnnotations[currentPage] = binding.annotationView.getAnnotations()
+                        pageRedoStacks[currentPage] = binding.annotationView.getRedoStack()
                         currentPage = firstVisiblePosition
                         updatePageInfo()
                         // Load annotations for new page
@@ -263,7 +267,8 @@ class PdfEditorFragment : Fragment() {
 
     private fun loadAnnotationsForPage(page: Int) {
         val annotations = pageAnnotations[page] ?: emptyList()
-        binding.annotationView.setAnnotations(annotations)
+        val redoStack = pageRedoStacks[page] ?: emptyList()
+        binding.annotationView.setAnnotationsWithRedo(annotations, redoStack)
         updateUndoRedoButtons()
     }
 
@@ -271,6 +276,7 @@ class PdfEditorFragment : Fragment() {
         binding.fabPrevious.setOnClickListener {
             if (currentPage > 0) {
                 pageAnnotations[currentPage] = binding.annotationView.getAnnotations()
+                pageRedoStacks[currentPage] = binding.annotationView.getRedoStack()
                 currentPage--
                 binding.recyclerPdfPages.smoothScrollToPosition(currentPage)
                 updatePageInfo()
@@ -281,6 +287,7 @@ class PdfEditorFragment : Fragment() {
         binding.fabNext.setOnClickListener {
             if (currentPage < totalPages - 1) {
                 pageAnnotations[currentPage] = binding.annotationView.getAnnotations()
+                pageRedoStacks[currentPage] = binding.annotationView.getRedoStack()
                 currentPage++
                 binding.recyclerPdfPages.smoothScrollToPosition(currentPage)
                 updatePageInfo()
@@ -334,27 +341,172 @@ class PdfEditorFragment : Fragment() {
             try {
                 binding.progressBar.visibility = View.VISIBLE
 
-                withContext(Dispatchers.IO) {
-                    // For now, export annotations as images overlaid on PDF
-                    // Full PDF annotation embedding would require a PDF library like iText
+                val savedFile = withContext(Dispatchers.IO) {
                     cachedFile?.let { file ->
                         val outputFile = File(
                             FileUtils.getOutputDirectory(requireContext()),
                             "annotated_${file.name}"
                         )
-                        file.copyTo(outputFile, overwrite = true)
                         
-                        // Note: This is a simplified implementation
-                        // Full implementation would merge annotations into PDF using iText
+                        // Use iText to embed annotations
+                        saveAnnotationsWithIText(file, outputFile)
+                        outputFile
                     }
                 }
 
                 binding.progressBar.visibility = View.GONE
-                Toast.makeText(context, "Annotations saved", Toast.LENGTH_SHORT).show()
+                if (savedFile != null) {
+                    Toast.makeText(context, "Annotations saved to ${savedFile.name}", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(context, "Failed to save annotations", Toast.LENGTH_SHORT).show()
+                }
             } catch (e: Exception) {
                 binding.progressBar.visibility = View.GONE
                 Toast.makeText(context, "Failed to save: ${e.message}", Toast.LENGTH_SHORT).show()
             }
+        }
+    }
+    
+    private fun saveAnnotationsWithIText(inputFile: File, outputFile: File) {
+        try {
+            val reader = com.itextpdf.kernel.pdf.PdfReader(inputFile)
+            val writer = com.itextpdf.kernel.pdf.PdfWriter(outputFile)
+            val pdfDoc = com.itextpdf.kernel.pdf.PdfDocument(reader, writer)
+            
+            // Process annotations for each page
+            pageAnnotations.forEach { (pageIndex, annotations) ->
+                if (annotations.isNotEmpty()) {
+                    val page = pdfDoc.getPage(pageIndex + 1) // iText uses 1-based indexing
+                    val pageHeight = page.pageSize.height
+                    
+                    annotations.forEach { annotation ->
+                        when {
+                            // Handle freehand drawing (pen/highlighter)
+                            annotation.path != null -> {
+                                val pathBounds = android.graphics.RectF()
+                                annotation.path.computeBounds(pathBounds, true)
+                                
+                                val inkList = com.itextpdf.kernel.pdf.PdfArray()
+                                val pointArray = com.itextpdf.kernel.pdf.PdfArray()
+                                
+                                // Extract points from path (simplified approach)
+                                val pathMeasure = android.graphics.PathMeasure(annotation.path, false)
+                                val pathLength = pathMeasure.length
+                                val numPoints = minOf(100, (pathLength / 5).toInt().coerceAtLeast(10))
+                                val coords = FloatArray(2)
+                                
+                                for (i in 0..numPoints) {
+                                    val distance = (i.toFloat() / numPoints) * pathLength
+                                    if (pathMeasure.getPosTan(distance, coords, null)) {
+                                        pointArray.add(com.itextpdf.kernel.pdf.PdfNumber(coords[0].toDouble()))
+                                        pointArray.add(com.itextpdf.kernel.pdf.PdfNumber((pageHeight - coords[1]).toDouble()))
+                                    }
+                                }
+                                inkList.add(pointArray)
+                                
+                                val pdfRect = com.itextpdf.kernel.geom.Rectangle(
+                                    pathBounds.left - 5,
+                                    pageHeight - pathBounds.bottom - 5,
+                                    pathBounds.width() + 10,
+                                    pathBounds.height() + 10
+                                )
+                                
+                                val inkAnnotation = com.itextpdf.kernel.pdf.annot.PdfInkAnnotation(pdfRect, inkList)
+                                val r = Color.red(annotation.paint.color)
+                                val g = Color.green(annotation.paint.color)
+                                val b = Color.blue(annotation.paint.color)
+                                inkAnnotation.setColor(com.itextpdf.kernel.colors.DeviceRgb(r, g, b))
+                                
+                                // Set opacity for highlighter
+                                if (annotation.shapeType == AnnotationView.Tool.HIGHLIGHTER) {
+                                    inkAnnotation.setOpacity(com.itextpdf.kernel.pdf.PdfNumber(0.4))
+                                }
+                                
+                                page.addAnnotation(inkAnnotation)
+                            }
+                            // Handle text annotations
+                            annotation.text != null && annotation.textPosition != null -> {
+                                val pdfRect = com.itextpdf.kernel.geom.Rectangle(
+                                    annotation.textPosition.x,
+                                    pageHeight - annotation.textPosition.y - 20,
+                                    200f,
+                                    24f
+                                )
+                                val freeTextAnnotation = com.itextpdf.kernel.pdf.annot.PdfFreeTextAnnotation(
+                                    pdfRect,
+                                    com.itextpdf.kernel.pdf.PdfString(annotation.text)
+                                )
+                                freeTextAnnotation.setContents(annotation.text)
+                                val r = Color.red(annotation.paint.color)
+                                val g = Color.green(annotation.paint.color)
+                                val b = Color.blue(annotation.paint.color)
+                                freeTextAnnotation.setColor(com.itextpdf.kernel.colors.DeviceRgb(r, g, b))
+                                page.addAnnotation(freeTextAnnotation)
+                            }
+                            // Handle shape annotations (rectangle, circle)
+                            annotation.shape != null -> {
+                                val shape = annotation.shape
+                                val pdfRect = com.itextpdf.kernel.geom.Rectangle(
+                                    shape.left,
+                                    pageHeight - shape.bottom,
+                                    shape.width(),
+                                    shape.height()
+                                )
+                                
+                                val squareAnnotation = com.itextpdf.kernel.pdf.annot.PdfSquareAnnotation(pdfRect)
+                                val r = Color.red(annotation.paint.color)
+                                val g = Color.green(annotation.paint.color)
+                                val b = Color.blue(annotation.paint.color)
+                                squareAnnotation.setColor(com.itextpdf.kernel.colors.DeviceRgb(r, g, b))
+                                page.addAnnotation(squareAnnotation)
+                            }
+                            // Handle line/arrow annotations
+                            annotation.startPoint != null && annotation.endPoint != null -> {
+                                val lineFloatArray = floatArrayOf(
+                                    annotation.startPoint.x,
+                                    pageHeight - annotation.startPoint.y,
+                                    annotation.endPoint.x,
+                                    pageHeight - annotation.endPoint.y
+                                )
+                                
+                                val minX = minOf(annotation.startPoint.x, annotation.endPoint.x)
+                                val minY = minOf(annotation.startPoint.y, annotation.endPoint.y)
+                                val maxX = maxOf(annotation.startPoint.x, annotation.endPoint.x)
+                                val maxY = maxOf(annotation.startPoint.y, annotation.endPoint.y)
+                                
+                                val pdfRect = com.itextpdf.kernel.geom.Rectangle(
+                                    minX - 5,
+                                    pageHeight - maxY - 5,
+                                    maxX - minX + 10,
+                                    maxY - minY + 10
+                                )
+                                
+                                val lineAnnotation = com.itextpdf.kernel.pdf.annot.PdfLineAnnotation(pdfRect, lineFloatArray)
+                                val r = Color.red(annotation.paint.color)
+                                val g = Color.green(annotation.paint.color)
+                                val b = Color.blue(annotation.paint.color)
+                                lineAnnotation.setColor(com.itextpdf.kernel.colors.DeviceRgb(r, g, b))
+                                
+                                // Add arrow head if it's an arrow
+                                if (annotation.shapeType == AnnotationView.Tool.ARROW) {
+                                    val endingStyles = com.itextpdf.kernel.pdf.PdfArray()
+                                    endingStyles.add(com.itextpdf.kernel.pdf.PdfName("None"))
+                                    endingStyles.add(com.itextpdf.kernel.pdf.PdfName("OpenArrow"))
+                                    lineAnnotation.put(com.itextpdf.kernel.pdf.PdfName.LE, endingStyles)
+                                }
+                                
+                                page.addAnnotation(lineAnnotation)
+                            }
+                        }
+                    }
+                }
+            }
+            
+            pdfDoc.close()
+        } catch (e: Exception) {
+            // If iText fails, fall back to copying
+            inputFile.copyTo(outputFile, overwrite = true)
+            throw e
         }
     }
 

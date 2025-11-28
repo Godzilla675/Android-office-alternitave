@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.officesuite.app.R
 import com.officesuite.app.data.model.DocumentFile
 import com.officesuite.app.data.model.DocumentType
+import com.officesuite.app.data.repository.PreferencesRepository
 import com.officesuite.app.data.templates.TemplateRepository
 import com.officesuite.app.databinding.FragmentHomeBinding
 import com.officesuite.app.utils.FileUtils
@@ -30,6 +31,7 @@ class HomeFragment : Fragment() {
     private lateinit var recentFilesAdapter: RecentFilesAdapter
     private lateinit var quickActionsAdapter: QuickActionsAdapter
     private lateinit var templateRepository: TemplateRepository
+    private lateinit var preferencesRepository: PreferencesRepository
 
     private val openDocumentLauncher = registerForActivityResult(
         ActivityResultContracts.OpenDocument()
@@ -49,10 +51,12 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         templateRepository = TemplateRepository(requireContext())
+        preferencesRepository = PreferencesRepository(requireContext())
         setupUI()
         setupRecyclerViews()
         setupClickListeners()
         setupTemplateClickListeners()
+        loadRecentFiles()
     }
 
     private fun setupUI() {
@@ -182,6 +186,14 @@ class HomeFragment : Fragment() {
     }
 
     private fun openDocument(file: DocumentFile) {
+        // Save to recent files
+        preferencesRepository.addRecentFile(
+            uri = file.uri.toString(),
+            name = file.name,
+            type = file.type,
+            size = file.size
+        )
+        
         NavigationUtils.navigateToViewer(this, file.uri.toString(), file.type)
         val bundle = Bundle().apply {
             putString("file_uri", file.uri.toString())
@@ -207,6 +219,40 @@ class HomeFragment : Fragment() {
                 Toast.makeText(context, "Unsupported file type", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+    
+    private fun loadRecentFiles() {
+        val recentFileItems = preferencesRepository.getRecentFiles()
+        val documentFiles = recentFileItems.mapNotNull { item ->
+            try {
+                val uri = Uri.parse(item.uri)
+                val docType = DocumentType.values().find { it.name == item.type } ?: DocumentType.UNKNOWN
+                DocumentFile(
+                    uri = uri,
+                    name = item.name,
+                    type = docType,
+                    size = item.size,
+                    lastModified = item.accessedAt
+                )
+            } catch (e: Exception) {
+                null
+            }
+        }
+        
+        recentFilesAdapter.updateFiles(documentFiles)
+        
+        // Update empty state visibility
+        if (documentFiles.isEmpty()) {
+            binding.emptyState.visibility = View.VISIBLE
+        } else {
+            binding.emptyState.visibility = View.GONE
+        }
+    }
+    
+    override fun onResume() {
+        super.onResume()
+        // Refresh recent files when returning to this fragment
+        loadRecentFiles()
     }
 
     private fun showCreateNewDialog() {
