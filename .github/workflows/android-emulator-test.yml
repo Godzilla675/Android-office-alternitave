@@ -1,0 +1,111 @@
+name: Android Emulator Installation Test
+
+on:
+  pull_request:
+    branches:
+      - main
+      - master
+
+permissions:
+  contents: read
+  actions: read
+  pull-requests: write
+
+jobs:
+  emulator-test:
+    name: Test APK Installation on Android Emulator
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build debug APK
+        run: ./gradlew assembleDebug
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Extract package info from APK
+        id: apk-info
+        run: |
+          APK_PATH="app/build/outputs/apk/debug/app-debug.apk"
+          # Find aapt in Android SDK build-tools
+          AAPT_CMD=$(find "$ANDROID_SDK_ROOT/build-tools" -name "aapt" 2>/dev/null | head -1)
+          if [ -z "$AAPT_CMD" ]; then
+            echo "Error: aapt not found in Android SDK"
+            exit 1
+          fi
+          echo "Using aapt: $AAPT_CMD"
+          PACKAGE_NAME=$("$AAPT_CMD" dump badging "$APK_PATH" | grep "^package:" | sed "s/package: name='\([^']*\)'.*/\1/")
+          LAUNCHABLE_ACTIVITY=$("$AAPT_CMD" dump badging "$APK_PATH" | grep "launchable-activity" | sed "s/.*name='\([^']*\)'.*/\1/")
+          echo "PACKAGE_NAME=$PACKAGE_NAME" >> $GITHUB_ENV
+          echo "LAUNCHABLE_ACTIVITY=$LAUNCHABLE_ACTIVITY" >> $GITHUB_ENV
+          echo "Package: $PACKAGE_NAME"
+          echo "Launchable Activity: $LAUNCHABLE_ACTIVITY"
+
+      - name: Run emulator test
+        uses: reactivecircus/android-emulator-runner@v2
+        id: emulator-test
+        with:
+          api-level: 30
+          arch: x86_64
+          profile: Nexus 6
+          target: google_apis
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          disable-animations: true
+          script: ./scripts/emulator-test.sh
+
+      - name: Comment test results on PR
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const result = process.env.RESULT || 'unknown';
+            const testMessage = process.env.TEST_MESSAGE || 'Test did not complete';
+            
+            let emoji = '❓';
+            if (result === 'success') emoji = '✅';
+            else if (result === 'partial') emoji = '⚠️';
+            else if (result === 'failed') emoji = '❌';
+            
+            const body = `## ${emoji} Android Emulator Installation Test Results
+            
+            ${testMessage}
+            
+            ### Test Environment
+            - **Emulator**: Android API 30 (x86_64)
+            - **Profile**: Nexus 6
+            - **Target**: Google APIs
+            
+            ### What was tested
+            1. Built the debug APK
+            2. Started Android emulator
+            3. Installed the APK using \`adb install\`
+            4. Launched the app using \`adb shell am start\`
+            5. Verified the app process is running
+            
+            ---
+            *Tested on commit ${context.sha.substring(0, 7)}*`;
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: body
+            });

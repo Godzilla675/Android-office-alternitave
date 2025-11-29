@@ -39,6 +39,11 @@ jobs:
       - name: Build debug APK
         run: ./gradlew assembleDebug
 
+      - name: Validate APK
+        run: |
+          chmod +x scripts/validate-apk.sh
+          ./scripts/validate-apk.sh
+
       - name: Upload lint results
         uses: actions/upload-artifact@v4
         if: always()
