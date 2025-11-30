@@ -37,6 +37,9 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      # Note: Using debug keystore for signing is intentional for this open-source project
+      # This allows anyone to install the APK without needing production signing keys
+      # For production apps, use GitHub secrets to store a production keystore
       - name: Create debug keystore for signing
         run: |
           mkdir -p ~/.android
