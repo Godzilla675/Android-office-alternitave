@@ -404,6 +404,8 @@ class ScannerFragment : Fragment() {
             binding.borderOverlay.clearCorners()
             binding.cardScanResult.visibility = View.GONE
             binding.imagePreview.visibility = View.GONE
+            binding.scrollOcrResult.visibility = View.GONE
+            binding.textOcrResult.visibility = View.GONE
             Toast.makeText(context, "Cleared all pages", Toast.LENGTH_SHORT).show()
         }
 
@@ -793,6 +795,7 @@ class ScannerFragment : Fragment() {
         val lastPage = scannedPages.lastOrNull() ?: return
         
         binding.progressBar.visibility = View.VISIBLE
+        binding.scrollOcrResult.visibility = View.GONE
         binding.textOcrResult.visibility = View.GONE
         
         lifecycleScope.launch {
@@ -801,10 +804,13 @@ class ScannerFragment : Fragment() {
                 
                 binding.progressBar.visibility = View.GONE
                 
-                if (result.success) {
+                if (result.success && result.fullText.isNotEmpty()) {
                     binding.textOcrResult.text = result.fullText
+                    binding.scrollOcrResult.visibility = View.VISIBLE
                     binding.textOcrResult.visibility = View.VISIBLE
                     Toast.makeText(context, "Text extracted successfully", Toast.LENGTH_SHORT).show()
+                } else if (result.success && result.fullText.isEmpty()) {
+                    Toast.makeText(context, "No text found in image", Toast.LENGTH_SHORT).show()
                 } else {
                     Toast.makeText(context, "OCR failed: ${result.error}", Toast.LENGTH_SHORT).show()
                 }
