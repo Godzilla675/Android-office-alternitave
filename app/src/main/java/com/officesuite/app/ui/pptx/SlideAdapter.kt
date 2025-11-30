@@ -1,13 +1,16 @@
 package com.officesuite.app.ui.pptx
 
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.RectF
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.officesuite.app.databinding.ItemSlideBinding
 import org.apache.poi.xslf.usermodel.XMLSlideShow
+import org.apache.poi.xslf.usermodel.XSLFPictureShape
 import org.apache.poi.xslf.usermodel.XSLFTextShape
 import java.io.File
 import java.io.FileInputStream
@@ -15,6 +18,7 @@ import java.io.FileInputStream
 /**
  * Adapter for rendering PPTX slides on-demand.
  * Slides are rendered lazily as they become visible, rather than all at once.
+ * Supports rendering of text, images, and shapes from slides.
  */
 class SlideAdapter(
     private val pptxFile: File,
@@ -115,7 +119,7 @@ class SlideAdapter(
         val bitmap = Bitmap.createBitmap(slideWidth, slideHeight, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         
-        // Draw white background (simplified - Android doesn't have java.awt.Color)
+        // Draw white background
         canvas.drawColor(Color.WHITE)
         
         val titlePaint = android.graphics.Paint().apply {
@@ -132,59 +136,91 @@ class SlideAdapter(
             isAntiAlias = true
         }
         
-        // Extract and render text content from shapes
+        // Extract and render content from shapes
         var yPosition = 60f
         var hasContent = false
         var isFirstText = true
         
         for (shape in slide.shapes) {
-            if (shape is XSLFTextShape) {
-                val text = shape.text ?: continue
-                if (text.isNotBlank()) {
-                    hasContent = true
-                    
-                    // Handle multi-line text
-                    val lines = text.split("\n")
-                    for (line in lines) {
-                        if (line.isBlank()) {
-                            yPosition += 20f
-                            continue
-                        }
+            when (shape) {
+                is XSLFPictureShape -> {
+                    // Render images
+                    var imageBitmap: Bitmap? = null
+                    try {
+                        val pictureData = shape.pictureData
+                        val imageBytes = pictureData.data
+                        imageBitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
                         
-                        val trimmedLine = line.trim()
-                        if (trimmedLine.length > 50) {
-                            // Word wrap long lines
-                            val words = trimmedLine.split(" ")
-                            val lineBuilder = StringBuilder()
-                            for (word in words) {
-                                val testLine = if (lineBuilder.isEmpty()) word else "$lineBuilder $word"
-                                if (testLine.length > 45) {
+                        if (imageBitmap != null) {
+                            hasContent = true
+                            
+                            // Center the image and scale to fit
+                            val imgWidth = minOf(imageBitmap.width, slideWidth - 40)
+                            val imgHeight = minOf(imageBitmap.height, slideHeight - 100)
+                            val scale = minOf(imgWidth.toFloat() / imageBitmap.width, imgHeight.toFloat() / imageBitmap.height)
+                            val scaledWidth = (imageBitmap.width * scale).toInt()
+                            val scaledHeight = (imageBitmap.height * scale).toInt()
+                            val left = (slideWidth - scaledWidth) / 2f
+                            val top = (slideHeight - scaledHeight) / 2f
+                            
+                            val destRect = RectF(left, top, left + scaledWidth, top + scaledHeight)
+                            canvas.drawBitmap(imageBitmap, null, destRect, null)
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        // Continue with other shapes
+                    } finally {
+                        imageBitmap?.recycle()
+                    }
+                }
+                is XSLFTextShape -> {
+                    val text = shape.text ?: continue
+                    if (text.isNotBlank()) {
+                        hasContent = true
+                        
+                        // Handle multi-line text
+                        val lines = text.split("\n")
+                        for (line in lines) {
+                            if (line.isBlank()) {
+                                yPosition += 20f
+                                continue
+                            }
+                            
+                            val trimmedLine = line.trim()
+                            if (trimmedLine.length > 50) {
+                                // Word wrap long lines
+                                val words = trimmedLine.split(" ")
+                                val lineBuilder = StringBuilder()
+                                for (word in words) {
+                                    val testLine = if (lineBuilder.isEmpty()) word else "$lineBuilder $word"
+                                    if (testLine.length > 45) {
+                                        drawTextLine(canvas, lineBuilder.toString(), yPosition, isFirstText, titlePaint, textPaint)
+                                        yPosition += if (isFirstText) 50f else 35f
+                                        isFirstText = false
+                                        lineBuilder.clear()
+                                        lineBuilder.append(word)
+                                    } else {
+                                        if (lineBuilder.isNotEmpty()) lineBuilder.append(" ")
+                                        lineBuilder.append(word)
+                                    }
+                                }
+                                if (lineBuilder.isNotEmpty()) {
                                     drawTextLine(canvas, lineBuilder.toString(), yPosition, isFirstText, titlePaint, textPaint)
                                     yPosition += if (isFirstText) 50f else 35f
                                     isFirstText = false
-                                    lineBuilder.clear()
-                                    lineBuilder.append(word)
-                                } else {
-                                    if (lineBuilder.isNotEmpty()) lineBuilder.append(" ")
-                                    lineBuilder.append(word)
                                 }
-                            }
-                            if (lineBuilder.isNotEmpty()) {
-                                drawTextLine(canvas, lineBuilder.toString(), yPosition, isFirstText, titlePaint, textPaint)
+                            } else {
+                                drawTextLine(canvas, trimmedLine, yPosition, isFirstText, titlePaint, textPaint)
                                 yPosition += if (isFirstText) 50f else 35f
                                 isFirstText = false
                             }
-                        } else {
-                            drawTextLine(canvas, trimmedLine, yPosition, isFirstText, titlePaint, textPaint)
-                            yPosition += if (isFirstText) 50f else 35f
-                            isFirstText = false
+                            
+                            if (yPosition > slideHeight - 60) break
                         }
                         
+                        yPosition += 15f // Gap between shapes
                         if (yPosition > slideHeight - 60) break
                     }
-                    
-                    yPosition += 15f // Gap between shapes
-                    if (yPosition > slideHeight - 60) break
                 }
             }
         }

@@ -28,20 +28,34 @@ import com.itextpdf.io.font.constants.StandardFonts
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.apache.poi.xslf.usermodel.XMLSlideShow
+import org.apache.poi.xslf.usermodel.XSLFPictureShape
+import org.apache.poi.xslf.usermodel.XSLFTextShape
 import org.apache.poi.xwpf.usermodel.XWPFDocument
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import android.graphics.BitmapFactory
+import android.graphics.RectF
 
 class DocumentConverter(private val context: Context) {
 
+    /**
+     * Convert a file with the given options and an optional custom output filename.
+     * 
+     * @param inputFile The input file to convert
+     * @param options Conversion options including source and target formats
+     * @param customOutputName Optional custom name for the output file (without extension)
+     * @return ConversionResult with success status and output path
+     */
     suspend fun convert(
         inputFile: File,
-        options: ConversionOptions
+        options: ConversionOptions,
+        customOutputName: String? = null
     ): ConversionResult = withContext(Dispatchers.IO) {
         try {
-            val outputFile = createOutputFile(inputFile.nameWithoutExtension, options.targetFormat)
+            val baseName = customOutputName ?: inputFile.nameWithoutExtension
+            val outputFile = createOutputFile(baseName, options.targetFormat)
             
             when {
                 options.sourceFormat == DocumentType.PDF && options.targetFormat == DocumentType.DOCX -> {
@@ -54,7 +68,11 @@ class DocumentConverter(private val context: Context) {
                     convertDocxToPdf(inputFile, outputFile)
                 }
                 options.sourceFormat == DocumentType.PPTX && options.targetFormat == DocumentType.PDF -> {
-                    convertPptxToPdf(inputFile, outputFile)
+                    if (options.ocrEnabled) {
+                        convertPptxToPdfWithOcr(inputFile, outputFile)
+                    } else {
+                        convertPptxToPdf(inputFile, outputFile)
+                    }
                 }
                 options.sourceFormat == DocumentType.MARKDOWN && options.targetFormat == DocumentType.PDF -> {
                     convertMarkdownToPdf(inputFile, outputFile)
@@ -369,52 +387,250 @@ class DocumentConverter(private val context: Context) {
 
     private fun convertPptxToPdf(inputFile: File, outputFile: File) {
         val slideShow = XMLSlideShow(FileInputStream(inputFile))
-        val pdfDocument = PdfDocument()
         
         try {
             // Use standard 16:9 presentation dimensions
             val slideWidth = 960
             val slideHeight = 540
+            
+            // Render each slide to a bitmap
+            val slideBitmaps = mutableListOf<Bitmap>()
             var pageNum = 1
             
             for (slide in slideShow.slides) {
-                val pageInfo = PdfDocument.PageInfo.Builder(
-                    slideWidth,
-                    slideHeight,
-                    pageNum
-                ).create()
-                
-                val page = pdfDocument.startPage(pageInfo)
-                val canvas = page.canvas
-                
-                // Create bitmap for slide
-                val bitmap = Bitmap.createBitmap(
-                    slideWidth,
-                    slideHeight,
-                    Bitmap.Config.ARGB_8888
-                )
-                val bitmapCanvas = Canvas(bitmap)
-                bitmapCanvas.drawColor(Color.WHITE)
-                
-                // Draw slide content (simplified)
-                val paint = android.graphics.Paint().apply {
-                    color = Color.BLACK
-                    textSize = 24f
-                }
-                bitmapCanvas.drawText("Slide $pageNum", 50f, 50f, paint)
-                
-                canvas.drawBitmap(bitmap, 0f, 0f, null)
-                bitmap.recycle()
-                
-                pdfDocument.finishPage(page)
+                val bitmap = renderSlideToBitmap(slide, slideWidth, slideHeight, pageNum)
+                slideBitmaps.add(bitmap)
                 pageNum++
             }
             
-            FileOutputStream(outputFile).use { out ->
-                pdfDocument.writeTo(out)
+            // Use iText to create PDF with slide images for better quality
+            val pdfWriter = PdfWriter(outputFile)
+            val pdfDoc = ITextPdfDocument(pdfWriter)
+            val document = Document(pdfDoc)
+            
+            slideBitmaps.forEachIndexed { index, bitmap ->
+                // Convert bitmap to byte array
+                val stream = ByteArrayOutputStream()
+                try {
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+                    val imageBytes = stream.toByteArray()
+                    
+                    // Create page with slide dimensions (landscape)
+                    val pageSize = PageSize(slideWidth.toFloat(), slideHeight.toFloat())
+                    pdfDoc.addNewPage(pageSize)
+                    
+                    // Add image to page
+                    val imageData = ImageDataFactory.create(imageBytes)
+                    val image = Image(imageData)
+                    image.setFixedPosition(index + 1, 0f, 0f)
+                    image.scaleToFit(pageSize.width, pageSize.height)
+                    document.add(image)
+                } finally {
+                    stream.close()
+                }
             }
+            
+            document.close()
+            
+            // Clean up bitmaps
+            slideBitmaps.forEach { it.recycle() }
         } finally {
-            pdfDocument.close()
+            slideShow.close()
+        }
+    }
+
+    /**
+     * Renders a PPTX slide to a bitmap image.
+     * Handles text, images, and shapes from the slide.
+     */
+    private fun renderSlideToBitmap(
+        slide: org.apache.poi.xslf.usermodel.XSLFSlide,
+        width: Int,
+        height: Int,
+        slideNumber: Int
+    ): Bitmap {
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        
+        // Draw white background
+        canvas.drawColor(Color.WHITE)
+        
+        val titlePaint = android.graphics.Paint().apply {
+            color = Color.BLACK
+            textSize = 36f
+            textAlign = android.graphics.Paint.Align.CENTER
+            isAntiAlias = true
+            isFakeBoldText = true
+        }
+        
+        val textPaint = android.graphics.Paint().apply {
+            color = Color.BLACK
+            textSize = 24f
+            isAntiAlias = true
+        }
+        
+        var yPosition = 60f
+        var hasContent = false
+        var isFirstText = true
+        
+        // Process all shapes in the slide
+        for (shape in slide.shapes) {
+            when (shape) {
+                is XSLFPictureShape -> {
+                    // Render images
+                    var imageBitmap: Bitmap? = null
+                    try {
+                        val pictureData = shape.pictureData
+                        val imageBytes = pictureData.data
+                        imageBitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+                        
+                        if (imageBitmap != null) {
+                            hasContent = true
+                            
+                            // Center the image and scale to fit
+                            val imgWidth = minOf(imageBitmap.width, width - 40)
+                            val imgHeight = minOf(imageBitmap.height, height - 100)
+                            val scale = minOf(imgWidth.toFloat() / imageBitmap.width, imgHeight.toFloat() / imageBitmap.height)
+                            val scaledWidth = (imageBitmap.width * scale).toInt()
+                            val scaledHeight = (imageBitmap.height * scale).toInt()
+                            val left = (width - scaledWidth) / 2f
+                            val top = (height - scaledHeight) / 2f
+                            
+                            val destRect = RectF(left, top, left + scaledWidth, top + scaledHeight)
+                            canvas.drawBitmap(imageBitmap, null, destRect, null)
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        // Continue with other shapes
+                    } finally {
+                        imageBitmap?.recycle()
+                    }
+                }
+                is XSLFTextShape -> {
+                    // Render text content
+                    val text = shape.text ?: continue
+                    if (text.isNotBlank()) {
+                        hasContent = true
+                        
+                        // Handle multi-line text
+                        val lines = text.split("\n")
+                        for (line in lines) {
+                            if (line.isBlank()) {
+                                yPosition += 20f
+                                continue
+                            }
+                            
+                            val trimmedLine = line.trim()
+                            if (trimmedLine.length > 50) {
+                                // Word wrap long lines
+                                val words = trimmedLine.split(" ")
+                                val lineBuilder = StringBuilder()
+                                for (word in words) {
+                                    val testLine = if (lineBuilder.isEmpty()) word else "$lineBuilder $word"
+                                    if (testLine.length > 45) {
+                                        drawSlideTextLine(canvas, lineBuilder.toString(), yPosition, isFirstText, titlePaint, textPaint, width)
+                                        yPosition += if (isFirstText) 50f else 35f
+                                        isFirstText = false
+                                        lineBuilder.clear()
+                                        lineBuilder.append(word)
+                                    } else {
+                                        if (lineBuilder.isNotEmpty()) lineBuilder.append(" ")
+                                        lineBuilder.append(word)
+                                    }
+                                }
+                                if (lineBuilder.isNotEmpty()) {
+                                    drawSlideTextLine(canvas, lineBuilder.toString(), yPosition, isFirstText, titlePaint, textPaint, width)
+                                    yPosition += if (isFirstText) 50f else 35f
+                                    isFirstText = false
+                                }
+                            } else {
+                                drawSlideTextLine(canvas, trimmedLine, yPosition, isFirstText, titlePaint, textPaint, width)
+                                yPosition += if (isFirstText) 50f else 35f
+                                isFirstText = false
+                            }
+                            
+                            if (yPosition > height - 60) break
+                        }
+                        
+                        yPosition += 15f // Gap between shapes
+                        if (yPosition > height - 60) break
+                    }
+                }
+            }
+        }
+        
+        // If no content found, show slide number placeholder
+        if (!hasContent) {
+            canvas.drawText("Slide $slideNumber", width / 2f, height / 2f, titlePaint)
+        }
+        
+        // Draw slide number at bottom
+        val pageNumberPaint = android.graphics.Paint().apply {
+            color = Color.GRAY
+            textSize = 18f
+            textAlign = android.graphics.Paint.Align.CENTER
+            isAntiAlias = true
+        }
+        canvas.drawText("$slideNumber", width / 2f, height - 20f, pageNumberPaint)
+        
+        return bitmap
+    }
+    
+    private fun drawSlideTextLine(
+        canvas: Canvas,
+        text: String,
+        y: Float,
+        isTitle: Boolean,
+        titlePaint: android.graphics.Paint,
+        textPaint: android.graphics.Paint,
+        slideWidth: Int
+    ) {
+        if (isTitle) {
+            canvas.drawText(text, slideWidth / 2f, y, titlePaint)
+        } else {
+            canvas.drawText("• $text", 40f, y, textPaint)
+        }
+    }
+
+    /**
+     * Converts PPTX to PDF with OCR support for searchable/selectable text.
+     * Each slide is rendered as an image and OCR is performed to extract text,
+     * which is then embedded as an invisible layer in the PDF.
+     */
+    private suspend fun convertPptxToPdfWithOcr(inputFile: File, outputFile: File) {
+        val slideShow = XMLSlideShow(FileInputStream(inputFile))
+        
+        try {
+            // Use standard 16:9 presentation dimensions
+            val slideWidth = 960
+            val slideHeight = 540
+            
+            // Render each slide to a bitmap
+            val slideBitmaps = mutableListOf<Bitmap>()
+            var pageNum = 1
+            
+            for (slide in slideShow.slides) {
+                val bitmap = renderSlideToBitmap(slide, slideWidth, slideHeight, pageNum)
+                slideBitmaps.add(bitmap)
+                pageNum++
+            }
+            
+            // Perform OCR on all slide bitmaps with proper resource handling
+            val ocrManager = OcrManager()
+            try {
+                val ocrResults = slideBitmaps.map { bitmap ->
+                    ocrManager.extractText(bitmap)
+                }
+                
+                // Create searchable PDF with OCR text layer
+                createSearchablePdfFromBitmaps(slideBitmaps, ocrResults, outputFile)
+            } finally {
+                ocrManager.close()
+            }
+            
+            // Clean up bitmaps
+            slideBitmaps.forEach { it.recycle() }
+        } finally {
             slideShow.close()
         }
     }
