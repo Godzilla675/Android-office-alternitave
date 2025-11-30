@@ -16,15 +16,18 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.officesuite.app.databinding.ActivityMainBinding
 import com.officesuite.app.ui.onboarding.OnboardingManager
+import com.officesuite.app.ui.update.UpdateDialogFragment
+import com.officesuite.app.utils.UpdateChecker
 import com.officesuite.app.widget.QuickActionsWidget
-
 import com.officesuite.app.widget.QuickNotesWidget
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -58,12 +61,39 @@ class MainActivity : AppCompatActivity() {
         
         // Check if onboarding should be shown
         checkOnboarding()
+        
+        // Check for app updates
+        checkForUpdates()
     }
     
     private fun checkOnboarding() {
         if (!OnboardingManager.isOnboardingComplete(this)) {
             // Navigate to onboarding
             navController.navigate(R.id.onboardingFragment)
+        }
+    }
+    
+    /**
+     * Check for app updates from GitHub releases.
+     * Shows an update dialog if a new version is available.
+     */
+    private fun checkForUpdates() {
+        if (!UpdateChecker.shouldCheckForUpdate(this)) return
+        
+        lifecycleScope.launch {
+            try {
+                val updateInfo = UpdateChecker.checkForUpdate(this@MainActivity)
+                UpdateChecker.markUpdateChecked(this@MainActivity)
+                
+                updateInfo?.let { info ->
+                    // Show update dialog
+                    val dialog = UpdateDialogFragment.newInstance(info)
+                    dialog.show(supportFragmentManager, "update_dialog")
+                }
+            } catch (e: Exception) {
+                // Silently fail - don't disturb the user if update check fails
+                e.printStackTrace()
+            }
         }
     }
 

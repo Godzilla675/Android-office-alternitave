@@ -4,15 +4,20 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.officesuite.app.BuildConfig
 import com.officesuite.app.R
 import com.officesuite.app.data.repository.ColorBlindMode
 import com.officesuite.app.data.repository.FontSize
 import com.officesuite.app.data.repository.PreferencesRepository
 import com.officesuite.app.databinding.FragmentSettingsBinding
+import com.officesuite.app.ui.update.UpdateDialogFragment
+import com.officesuite.app.utils.UpdateChecker
+import kotlinx.coroutines.launch
 
 /**
  * Settings Fragment for managing app preferences.
@@ -86,6 +91,10 @@ class SettingsFragment : Fragment() {
         if (wordGoal > 0) {
             binding.editWordGoal.setText(wordGoal.toString())
         }
+        
+        // Updates settings
+        binding.switchAutoCheckUpdates.isChecked = UpdateChecker.isAutoCheckEnabled(requireContext())
+        binding.textCurrentVersion.text = "Current version: ${BuildConfig.VERSION_NAME}"
     }
 
     private fun setupListeners() {
@@ -125,7 +134,7 @@ class SettingsFragment : Fragment() {
         // Clear recent files
         binding.btnClearRecent.setOnClickListener {
             prefsRepository.clearRecentFiles()
-            android.widget.Toast.makeText(context, "Recent files cleared", android.widget.Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Recent files cleared", Toast.LENGTH_SHORT).show()
         }
         
         // Accessibility settings
@@ -169,11 +178,21 @@ class SettingsFragment : Fragment() {
             val goalText = binding.editWordGoal.text.toString()
             val goal = goalText.toIntOrNull() ?: 0
             prefsRepository.wordCountGoal = goal
-            android.widget.Toast.makeText(
+            Toast.makeText(
                 context, 
                 if (goal > 0) "Word goal set to $goal" else "Word goal cleared", 
-                android.widget.Toast.LENGTH_SHORT
+                Toast.LENGTH_SHORT
             ).show()
+        }
+        
+        // Auto-check updates toggle
+        binding.switchAutoCheckUpdates.setOnCheckedChangeListener { _, isChecked ->
+            UpdateChecker.setAutoCheckEnabled(requireContext(), isChecked)
+        }
+        
+        // Check for updates button
+        binding.btnCheckUpdates.setOnClickListener {
+            checkForUpdates()
         }
         
         // Platform Features navigation
@@ -184,6 +203,39 @@ class SettingsFragment : Fragment() {
         // Developer settings
         binding.btnDeveloperSettings.setOnClickListener {
             findNavController().navigate(R.id.developerSettingsFragment)
+        }
+    }
+    
+    private fun checkForUpdates() {
+        binding.btnCheckUpdates.isEnabled = false
+        binding.btnCheckUpdates.text = getString(R.string.checking_for_updates).replace("...", "")
+        
+        lifecycleScope.launch {
+            try {
+                val updateInfo = UpdateChecker.checkForUpdate(requireContext(), forceCheck = true)
+                UpdateChecker.markUpdateChecked(requireContext())
+                
+                if (updateInfo != null) {
+                    // Show update dialog
+                    val dialog = UpdateDialogFragment.newInstance(updateInfo)
+                    dialog.show(parentFragmentManager, "update_dialog")
+                } else {
+                    Toast.makeText(
+                        requireContext(),
+                        R.string.no_updates_available,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(
+                    requireContext(),
+                    R.string.update_check_failed,
+                    Toast.LENGTH_SHORT
+                ).show()
+            } finally {
+                binding.btnCheckUpdates.isEnabled = true
+                binding.btnCheckUpdates.text = "Check"
+            }
         }
     }
 
