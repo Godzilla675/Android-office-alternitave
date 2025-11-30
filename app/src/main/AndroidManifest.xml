@@ -194,6 +194,13 @@
             android:theme="@style/Theme.OfficeSuite.Fullscreen"
             android:configChanges="orientation|screenSize" />
 
+        <!-- PDF Reading Mode Activity -->
+        <activity
+            android:name=".ui.reader.PdfReadingModeActivity"
+            android:exported="false"
+            android:theme="@style/Theme.OfficeSuite.Fullscreen"
+            android:configChanges="orientation|screenSize" />
+
         <!-- File Provider for sharing files -->
         <provider
             android:name="androidx.core.content.FileProvider"

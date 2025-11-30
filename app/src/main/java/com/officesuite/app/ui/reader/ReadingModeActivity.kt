@@ -341,20 +341,12 @@ class ReadingModeActivity : AppCompatActivity() {
         try {
             val document = XWPFDocument(FileInputStream(file))
             
-            // Create a map of picture data for embedding
-            val pictureMap = mutableMapOf<String, String>()
-            for (pictureData in document.allPictures) {
-                val base64 = Base64.encodeToString(pictureData.data, Base64.NO_WRAP)
-                val mimeType = getMimeType(pictureData)
-                pictureMap[pictureData.fileName] = "data:$mimeType;base64,$base64"
-            }
-            
             // Process body elements in order
             val bodyElements = document.bodyElements
             for (element in bodyElements) {
                 when (element) {
                     is org.apache.poi.xwpf.usermodel.XWPFParagraph -> {
-                        val paragraphHtml = processParagraph(element, pictureMap)
+                        val paragraphHtml = processParagraph(element)
                         if (paragraphHtml.isNotEmpty()) {
                             htmlBuilder.append(paragraphHtml)
                         }
@@ -375,8 +367,7 @@ class ReadingModeActivity : AppCompatActivity() {
         return htmlBuilder.toString()
     }
 
-    @Suppress("UNUSED_PARAMETER")
-    private fun processParagraph(paragraph: org.apache.poi.xwpf.usermodel.XWPFParagraph, pictureMap: Map<String, String>): String {
+    private fun processParagraph(paragraph: org.apache.poi.xwpf.usermodel.XWPFParagraph): String {
         val builder = StringBuilder()
         val paragraphText = StringBuilder()
         
@@ -501,11 +492,14 @@ class ReadingModeActivity : AppCompatActivity() {
                         background-color: #e3f2fd;
                         border-bottom: 1px solid #bbdefb;
                     }
+                    .table-wrapper {
+                        overflow-x: auto;
+                        -webkit-overflow-scrolling: touch;
+                    }
                     table {
                         border-collapse: collapse;
                         width: 100%;
-                        overflow-x: auto;
-                        display: block;
+                        min-width: 600px;
                     }
                     th, td {
                         border: 1px solid #e0e0e0;
@@ -557,6 +551,7 @@ class ReadingModeActivity : AppCompatActivity() {
                 
                 htmlBuilder.append("<div class=\"sheet-container\">")
                 htmlBuilder.append("<div class=\"sheet-name\">$sheetName</div>")
+                htmlBuilder.append("<div class=\"table-wrapper\">")
                 htmlBuilder.append("<table>")
                 
                 // Determine the maximum number of columns
@@ -600,7 +595,8 @@ class ReadingModeActivity : AppCompatActivity() {
                 }
                 
                 htmlBuilder.append("</table>")
-                htmlBuilder.append("</div>")
+                htmlBuilder.append("</div>") // close table-wrapper
+                htmlBuilder.append("</div>") // close sheet-container
             }
             
             workbook.close()

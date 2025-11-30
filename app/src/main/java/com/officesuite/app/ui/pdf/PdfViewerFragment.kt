@@ -23,7 +23,7 @@ import com.officesuite.app.R
 import com.officesuite.app.data.collaboration.CollaborationRepository
 import com.officesuite.app.databinding.FragmentPdfViewerBinding
 import com.officesuite.app.pdf.PdfTextExtractor
-import com.officesuite.app.ui.reader.ReadingModeActivity
+import com.officesuite.app.ui.reader.PdfReadingModeActivity
 import com.officesuite.app.utils.ErrorHandler
 import com.officesuite.app.ui.collaboration.CommentsDialogFragment
 import com.officesuite.app.utils.FileUtils
@@ -163,9 +163,8 @@ class PdfViewerFragment : Fragment() {
 
     private fun startReadingMode() {
         fileUri?.let { uri ->
-            val intent = Intent(requireContext(), ReadingModeActivity::class.java).apply {
-                putExtra(ReadingModeActivity.EXTRA_FILE_URI, uri.toString())
-                putExtra(ReadingModeActivity.EXTRA_DOCUMENT_TYPE, ReadingModeActivity.DocumentType.PDF.name)
+            val intent = Intent(requireContext(), PdfReadingModeActivity::class.java).apply {
+                putExtra(PdfReadingModeActivity.EXTRA_FILE_URI, uri.toString())
             }
             startActivity(intent)
         } ?: run {
