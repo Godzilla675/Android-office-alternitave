@@ -212,4 +212,11 @@
         android:label="@string/developer_settings"
         tools:layout="@layout/fragment_developer_settings" />
 
+    <!-- Releases Fragment -->
+    <fragment
+        android:id="@+id/releasesFragment"
+        android:name="com.officesuite.app.ui.update.ReleasesFragment"
+        android:label="@string/releases"
+        tools:layout="@layout/fragment_releases" />
+
 </navigation>

@@ -1,0 +1,136 @@
+name: Update All Devices
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_name:
+        description: 'Version name for the release (e.g., 1.0.1)'
+        required: true
+        default: '1.0.0'
+      release_notes:
+        description: 'Release notes for this update'
+        required: false
+        default: 'Latest update with bug fixes and improvements'
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  build-and-release:
+    name: Build and Release Update
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      # Note: Using debug keystore for signing is intentional for this open-source project
+      # This allows anyone to install the APK without needing production signing keys
+      # For production apps, use GitHub secrets to store a production keystore
+      - name: Create debug keystore for signing
+        run: |
+          mkdir -p ~/.android
+          if [ ! -f ~/.android/debug.keystore ]; then
+            keytool -genkeypair -v \
+              -keystore ~/.android/debug.keystore \
+              -storepass android \
+              -alias androiddebugkey \
+              -keypass android \
+              -keyalg RSA \
+              -keysize 2048 \
+              -validity 10000 \
+              -dname "CN=Android Debug,O=Android,C=US"
+          fi
+
+      - name: Build release APK
+        run: ./gradlew assembleRelease
+
+      - name: Validate APK is properly signed
+        run: |
+          APK_PATH=$(find app/build/outputs/apk/release -name "*.apk" -type f | head -1)
+          echo "Found APK: $APK_PATH"
+          
+          APKSIGNER=$(find "$ANDROID_SDK_ROOT/build-tools" -name "apksigner" 2>/dev/null | sort -V 2>/dev/null | tail -1)
+          if [ -z "$APKSIGNER" ]; then
+            APKSIGNER=$(find "$ANDROID_SDK_ROOT/build-tools" -name "apksigner" 2>/dev/null | head -1)
+          fi
+          
+          if [ -n "$APKSIGNER" ]; then
+            echo "Verifying APK signature with apksigner..."
+            if "$APKSIGNER" verify --verbose "$APK_PATH"; then
+              echo "✅ APK is properly signed and ready for distribution"
+            else
+              echo "❌ APK signature verification failed"
+              exit 1
+            fi
+          else
+            echo "⚠️ apksigner not found, checking for signature files in APK..."
+            if unzip -l "$APK_PATH" | grep -q "META-INF/.*\.\(RSA\|DSA\|EC\|SF\)"; then
+              echo "✅ APK contains signature files"
+            else
+              echo "❌ APK appears to be unsigned"
+              exit 1
+            fi
+          fi
+
+      - name: Rename APK with version
+        id: rename-apk
+        run: |
+          APK_PATH=$(find app/build/outputs/apk/release -name "*.apk" -type f | head -1)
+          APK_DIR=$(dirname "$APK_PATH")
+          NEW_APK_NAME="officesuite-v${{ github.event.inputs.version_name }}.apk"
+          mv "$APK_PATH" "$APK_DIR/$NEW_APK_NAME"
+          echo "apk_path=$APK_DIR/$NEW_APK_NAME" >> $GITHUB_OUTPUT
+          echo "apk_name=$NEW_APK_NAME" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.event.inputs.version_name }}
+          name: Release v${{ github.event.inputs.version_name }}
+          body: |
+            ## 📱 Update Available - v${{ github.event.inputs.version_name }}
+            
+            ${{ github.event.inputs.release_notes }}
+            
+            ### 📥 How to Update Your Device
+            
+            1. Download the APK file attached below
+            2. Enable "Install from unknown sources" in your device settings if not already enabled
+            3. Open the downloaded APK file to install the update
+            4. If you have a previous version installed, the app will be updated automatically
+            
+            ### ✅ APK Information
+            
+            - **File**: ${{ steps.rename-apk.outputs.apk_name }}
+            - **Signed**: Yes (ready to install on any Android device)
+            - **Min Android Version**: Android 8.0 (API 26)
+            
+            ---
+            *Built from commit ${{ github.sha }}*
+          files: ${{ steps.rename-apk.outputs.apk_path }}
+          draft: false
+          prerelease: false
+
+      - name: Summary
+        run: |
+          echo "## 🚀 Release Published Successfully!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version**: v${{ github.event.inputs.version_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**APK**: ${{ steps.rename-apk.outputs.apk_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Users can now update their devices by downloading the APK from the [Releases page](https://github.com/${{ github.repository }}/releases/tag/v${{ github.event.inputs.version_name }})." >> $GITHUB_STEP_SUMMARY
