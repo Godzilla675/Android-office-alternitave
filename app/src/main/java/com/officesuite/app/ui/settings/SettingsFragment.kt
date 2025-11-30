@@ -208,7 +208,7 @@ class SettingsFragment : Fragment() {
     
     private fun checkForUpdates() {
         binding.btnCheckUpdates.isEnabled = false
-        binding.btnCheckUpdates.text = getString(R.string.checking_for_updates).replace("...", "")
+        binding.btnCheckUpdates.text = getString(R.string.checking)
         
         lifecycleScope.launch {
             try {
@@ -234,7 +234,7 @@ class SettingsFragment : Fragment() {
                 ).show()
             } finally {
                 binding.btnCheckUpdates.isEnabled = true
-                binding.btnCheckUpdates.text = "Check"
+                binding.btnCheckUpdates.text = getString(R.string.check)
             }
         }
     }

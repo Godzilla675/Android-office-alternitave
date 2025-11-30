@@ -93,6 +93,21 @@ class UpdateDialogFragment : BottomSheetDialogFragment() {
         // Update Now button - opens the download URL
         binding.btnUpdate.setOnClickListener {
             updateInfo?.let { info ->
+                // Validate URL before opening
+                val urlToOpen = if (isValidUrl(info.downloadUrl)) {
+                    info.downloadUrl
+                } else if (isValidUrl(info.htmlUrl)) {
+                    info.htmlUrl
+                } else {
+                    Toast.makeText(
+                        requireContext(),
+                        R.string.update_check_failed,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    dismiss()
+                    return@setOnClickListener
+                }
+                
                 try {
                     Toast.makeText(
                         requireContext(),
@@ -100,20 +115,14 @@ class UpdateDialogFragment : BottomSheetDialogFragment() {
                         Toast.LENGTH_SHORT
                     ).show()
                     
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(info.downloadUrl))
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(urlToOpen))
                     startActivity(intent)
                 } catch (e: Exception) {
-                    // Fallback to HTML URL if download URL doesn't work
-                    try {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(info.htmlUrl))
-                        startActivity(intent)
-                    } catch (e2: Exception) {
-                        Toast.makeText(
-                            requireContext(),
-                            R.string.update_check_failed,
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
+                    Toast.makeText(
+                        requireContext(),
+                        R.string.update_check_failed,
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
                 dismiss()
             }
@@ -130,6 +139,18 @@ class UpdateDialogFragment : BottomSheetDialogFragment() {
                 UpdateChecker.dismissVersion(requireContext(), info.latestVersion)
             }
             dismiss()
+        }
+    }
+    
+    /**
+     * Validates that a URL is well-formed and uses HTTPS protocol for security.
+     */
+    private fun isValidUrl(url: String): Boolean {
+        return try {
+            val uri = Uri.parse(url)
+            uri.scheme?.lowercase() == "https" && !uri.host.isNullOrBlank()
+        } catch (e: Exception) {
+            false
         }
     }
 

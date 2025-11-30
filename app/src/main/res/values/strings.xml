@@ -854,6 +854,8 @@
     <string name="remind_me_later">Remind Me Later</string>
     <string name="skip_this_version">Skip This Version</string>
     <string name="checking_for_updates">Checking for updates...</string>
+    <string name="checking">Checking</string>
+    <string name="check">Check</string>
     <string name="no_updates_available">You\'re up to date!</string>
     <string name="update_check_failed">Failed to check for updates</string>
     <string name="auto_check_updates">Auto-check for updates</string>

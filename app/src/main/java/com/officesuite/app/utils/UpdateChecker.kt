@@ -99,12 +99,13 @@ object UpdateChecker {
      */
     suspend fun checkForUpdate(context: Context, forceCheck: Boolean = false): UpdateInfo? {
         return withContext(Dispatchers.IO) {
+            var connection: HttpURLConnection? = null
             try {
                 val owner = BuildConfig.GITHUB_REPO_OWNER
                 val repo = BuildConfig.GITHUB_REPO_NAME
                 val url = URL("https://api.github.com/repos/$owner/$repo/releases/latest")
                 
-                val connection = url.openConnection() as HttpURLConnection
+                connection = url.openConnection() as HttpURLConnection
                 connection.requestMethod = "GET"
                 connection.setRequestProperty("Accept", "application/vnd.github+json")
                 connection.connectTimeout = 10000
@@ -142,6 +143,8 @@ object UpdateChecker {
             } catch (e: Exception) {
                 e.printStackTrace()
                 null
+            } finally {
+                connection?.disconnect()
             }
         }
     }
@@ -149,11 +152,16 @@ object UpdateChecker {
     /**
      * Compare two version strings.
      * Returns true if version1 is newer than version2.
+     * Handles versions with pre-release suffixes like "1.0.0-alpha" or "2.0.0-beta.1"
      */
     fun isNewerVersion(version1: String, version2: String): Boolean {
         try {
-            val parts1 = version1.split(".").map { it.toIntOrNull() ?: 0 }
-            val parts2 = version2.split(".").map { it.toIntOrNull() ?: 0 }
+            // Remove pre-release suffix for comparison (e.g., -alpha, -beta)
+            val cleanVersion1 = version1.split("-").first()
+            val cleanVersion2 = version2.split("-").first()
+            
+            val parts1 = cleanVersion1.split(".").map { it.toIntOrNull() ?: 0 }
+            val parts2 = cleanVersion2.split(".").map { it.toIntOrNull() ?: 0 }
             
             val maxLength = maxOf(parts1.size, parts2.size)
             
@@ -164,6 +172,14 @@ object UpdateChecker {
                 if (v1 > v2) return true
                 if (v1 < v2) return false
             }
+            
+            // If versions are numerically equal, a release version is newer than pre-release
+            // e.g., 1.0.0 is newer than 1.0.0-beta
+            val hasPreRelease1 = version1.contains("-")
+            val hasPreRelease2 = version2.contains("-")
+            
+            if (!hasPreRelease1 && hasPreRelease2) return true
+            if (hasPreRelease1 && !hasPreRelease2) return false
             
             return false // Versions are equal
         } catch (e: Exception) {
