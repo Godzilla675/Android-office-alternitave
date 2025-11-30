@@ -75,6 +75,10 @@ class ScannerFragment : Fragment() {
     private val borderDetector = DocumentBorderDetector()
     private var autoBorderEnabled = true
     
+    // Image analysis resolution for border detection
+    private var analysisWidth = ANALYSIS_WIDTH
+    private var analysisHeight = ANALYSIS_HEIGHT
+    
     // Flag to prevent processing too many frames
     private val isProcessingFrame = AtomicBoolean(false)
     private var lastDetectedCorners: DocumentBorderDetector.DetectedCorners? = null
@@ -88,6 +92,10 @@ class ScannerFragment : Fragment() {
     // Current scan mode
     private var currentScanMode = ScanMode.DOCUMENT
     
+    companion object {
+        private const val ANALYSIS_WIDTH = 640
+        private const val ANALYSIS_HEIGHT = 480
+    }
     // Last scan result for action buttons
     private var lastScanResult: Any? = null
 
@@ -289,12 +297,18 @@ class ScannerFragment : Fragment() {
 
     /**
      * Convert ImageProxy to Bitmap for border detection analysis.
+     * Properly handles YUV_420_888 format from CameraX.
      */
     @androidx.annotation.OptIn(androidx.camera.core.ExperimentalGetImage::class)
     private fun imageProxyToBitmap(imageProxy: ImageProxy): Bitmap? {
         val image = imageProxy.image ?: return null
         
+        // Store actual analysis dimensions
+        analysisWidth = image.width
+        analysisHeight = image.height
+        
         return try {
+            // CameraX uses YUV_420_888 format
             val yBuffer = image.planes[0].buffer
             val uBuffer = image.planes[1].buffer
             val vBuffer = image.planes[2].buffer
@@ -303,11 +317,44 @@ class ScannerFragment : Fragment() {
             val uSize = uBuffer.remaining()
             val vSize = vBuffer.remaining()
 
+            // Create NV21 byte array for YuvImage
+            // NV21 format: Y plane followed by interleaved VU
             val nv21 = ByteArray(ySize + uSize + vSize)
 
+            // Copy Y plane
             yBuffer.get(nv21, 0, ySize)
-            vBuffer.get(nv21, ySize, vSize)
-            uBuffer.get(nv21, ySize + vSize, uSize)
+            
+            // For YUV_420_888, U and V planes may have pixel stride > 1
+            // We need to properly interleave them for NV21
+            val vRowStride = image.planes[2].rowStride
+            val vPixelStride = image.planes[2].pixelStride
+            
+            if (vPixelStride == 2) {
+                // U and V are already interleaved (common case)
+                // V plane contains interleaved VU data
+                vBuffer.get(nv21, ySize, vSize)
+            } else {
+                // Manual interleaving needed
+                val chromaHeight = image.height / 2
+                val chromaWidth = image.width / 2
+                var vuIndex = ySize
+                
+                for (row in 0 until chromaHeight) {
+                    for (col in 0 until chromaWidth) {
+                        val vIndex = row * vRowStride + col * vPixelStride
+                        val uIndex = row * image.planes[1].rowStride + col * image.planes[1].pixelStride
+                        
+                        if (vIndex < vSize) {
+                            vBuffer.position(vIndex)
+                            nv21[vuIndex++] = vBuffer.get()
+                        }
+                        if (uIndex < uSize) {
+                            uBuffer.position(uIndex)
+                            nv21[vuIndex++] = uBuffer.get()
+                        }
+                    }
+                }
+            }
 
             val yuvImage = YuvImage(nv21, android.graphics.ImageFormat.NV21, image.width, image.height, null)
             val out = ByteArrayOutputStream()
@@ -520,9 +567,9 @@ class ScannerFragment : Fragment() {
                 val corners = lastDetectedCorners
                 if (corners != null && corners.confidence >= 0.3f) {
                     // Scale corners to match the full resolution bitmap
-                    // The live preview was at 640x480, but the captured image is full resolution
-                    val scaleX = bitmap.width.toFloat() / 640f
-                    val scaleY = bitmap.height.toFloat() / 480f
+                    // Use the actual analysis dimensions instead of hardcoded values
+                    val scaleX = bitmap.width.toFloat() / analysisWidth.toFloat()
+                    val scaleY = bitmap.height.toFloat() / analysisHeight.toFloat()
                     val scaledCorners = DocumentBorderDetector.DetectedCorners(
                         topLeft = android.graphics.PointF(corners.topLeft.x * scaleX, corners.topLeft.y * scaleY),
                         topRight = android.graphics.PointF(corners.topRight.x * scaleX, corners.topRight.y * scaleY),
