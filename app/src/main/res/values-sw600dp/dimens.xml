@@ -49,7 +49,4 @@
     
     <!-- Quick actions span count for tablets -->
     <integer name="quick_actions_span_count">5</integer>
-    
-    <!-- Use navigation rail on tablets -->
-    <bool name="use_navigation_rail">true</bool>
 </resources>
