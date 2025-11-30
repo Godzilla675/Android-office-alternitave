@@ -202,6 +202,14 @@ class PdfViewerFragment : Fragment() {
         fileUri?.let { uri ->
             binding.progressBar.visibility = View.VISIBLE
             
+            // First check if the URI is accessible
+            if (!FileUtils.isUriAccessible(requireContext(), uri)) {
+                binding.progressBar.visibility = View.GONE
+                Toast.makeText(context, "File is no longer accessible. It may have been moved or deleted.", Toast.LENGTH_LONG).show()
+                findNavController().navigateUp()
+                return
+            }
+            
             lifecycleScope.launch {
                 val result = Result.runCatchingSuspend {
                     withContext(Dispatchers.IO) {

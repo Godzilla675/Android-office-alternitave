@@ -826,52 +826,95 @@ class ScannerFragment : Fragment() {
         
         lifecycleScope.launch {
             try {
-                // Create output directory if it doesn't exist
-                val outputDir = FileUtils.getOutputDirectory(requireContext())
-                if (!outputDir.exists()) {
-                    outputDir.mkdirs()
-                }
-                
                 val fileName = "scan_${System.currentTimeMillis()}.pdf"
-                val outputFile = File(outputDir, fileName)
+                
+                // First create a temp file to store the PDF
+                val tempFile = FileUtils.createTempFile(requireContext(), "scan_", ".pdf")
                 
                 // Create searchable PDF with OCR text for selectable text
                 val success = withContext(Dispatchers.IO) {
                     documentConverter.createSearchablePdfWithOcr(
                         scannedPages, 
-                        outputFile,
+                        tempFile,
                         ocrManager
                     )
                 }
                 
-                binding.progressBar.visibility = View.GONE
-                
-                if (success && outputFile.exists() && outputFile.length() > 0) {
-                    // Get URI for the saved file using FileProvider
-                    val fileUri = FileProvider.getUriForFile(
-                        requireContext(),
-                        "${requireContext().packageName}.fileprovider",
-                        outputFile
-                    )
+                if (success && tempFile.exists() && tempFile.length() > 0) {
+                    // Save to public Downloads folder so users can find it
+                    val publicUri = withContext(Dispatchers.IO) {
+                        FileUtils.saveToPublicDownloads(
+                            requireContext(),
+                            tempFile,
+                            fileName,
+                            "application/pdf"
+                        )
+                    }
                     
-                    // Add to recent files so it appears in the home screen
-                    preferencesRepository.addRecentFile(
-                        uri = fileUri.toString(),
-                        name = fileName,
-                        type = DocumentType.PDF,
-                        size = outputFile.length()
-                    )
+                    binding.progressBar.visibility = View.GONE
                     
-                    Toast.makeText(context, "PDF saved: ${outputFile.name}", Toast.LENGTH_LONG).show()
+                    if (publicUri != null) {
+                        // Add to recent files so it appears in the home screen
+                        preferencesRepository.addRecentFile(
+                            uri = publicUri.toString(),
+                            name = fileName,
+                            type = DocumentType.PDF,
+                            size = tempFile.length()
+                        )
+                        
+                        Toast.makeText(
+                            context, 
+                            "PDF saved to Downloads/OfficeSuite/$fileName", 
+                            Toast.LENGTH_LONG
+                        ).show()
+                        
+                        // Clear scanned pages after successful save
+                        scannedPages.forEach { it.recycle() }
+                        scannedPages.clear()
+                        updatePageCount()
+                        binding.imagePreview.visibility = View.GONE
+                        binding.imagePreview.setImageBitmap(null)
+                    } else {
+                        // Fallback: Keep file in app-private storage and use FileProvider
+                        val outputDir = FileUtils.getOutputDirectory(requireContext())
+                        if (!outputDir.exists()) {
+                            outputDir.mkdirs()
+                        }
+                        val outputFile = File(outputDir, fileName)
+                        tempFile.copyTo(outputFile, overwrite = true)
+                        
+                        val fileUri = FileProvider.getUriForFile(
+                            requireContext(),
+                            "${requireContext().packageName}.fileprovider",
+                            outputFile
+                        )
+                        
+                        preferencesRepository.addRecentFile(
+                            uri = fileUri.toString(),
+                            name = fileName,
+                            type = DocumentType.PDF,
+                            size = outputFile.length()
+                        )
+                        
+                        Toast.makeText(
+                            context, 
+                            "PDF saved: $fileName (in app storage)", 
+                            Toast.LENGTH_LONG
+                        ).show()
+                        
+                        scannedPages.forEach { it.recycle() }
+                        scannedPages.clear()
+                        updatePageCount()
+                        binding.imagePreview.visibility = View.GONE
+                        binding.imagePreview.setImageBitmap(null)
+                    }
                     
-                    // Clear scanned pages after successful save
-                    scannedPages.forEach { it.recycle() }
-                    scannedPages.clear()
-                    updatePageCount()
-                    binding.imagePreview.visibility = View.GONE
-                    binding.imagePreview.setImageBitmap(null)
+                    // Clean up temp file
+                    tempFile.delete()
                 } else {
+                    binding.progressBar.visibility = View.GONE
                     Toast.makeText(context, "Failed to create PDF", Toast.LENGTH_SHORT).show()
+                    tempFile.delete()
                 }
             } catch (e: Exception) {
                 binding.progressBar.visibility = View.GONE

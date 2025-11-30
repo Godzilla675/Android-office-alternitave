@@ -22,6 +22,19 @@ import kotlin.math.sqrt
  */
 class DocumentBorderDetector {
 
+    companion object {
+        // Minimum number of edge points required for detection
+        private const val MIN_EDGE_POINTS = 50
+        // Minimum ratio of contour area to image area (10%)
+        private const val MIN_CONTOUR_AREA_RATIO = 0.1
+        // Divisor for contour simplification epsilon calculation
+        private const val CONTOUR_SIMPLIFICATION_DIVISOR = 20.0
+        // Maximum number of points to trace in a contour
+        private const val MAX_CONTOUR_POINTS = 5000
+        // Minimum contour size to be considered
+        private const val MIN_CONTOUR_SIZE = 20
+    }
+
     data class DetectedCorners(
         val topLeft: PointF,
         val topRight: PointF,
@@ -231,6 +244,10 @@ class DocumentBorderDetector {
         val gradientMag = IntArray(width * height)
 
         // Calculate gradients using Sobel
+        var maxGradient = 0
+        var sumGradient = 0L
+        var gradientCount = 0
+        
         for (y in 1 until height - 1) {
             for (x in 1 until width - 1) {
                 val gx = (getGray(pixels, width, x + 1, y - 1) + 2 * getGray(pixels, width, x + 1, y) + getGray(pixels, width, x + 1, y + 1)) -
@@ -241,14 +258,26 @@ class DocumentBorderDetector {
 
                 gradientX[y * width + x] = gx
                 gradientY[y * width + x] = gy
-                gradientMag[y * width + x] = sqrt((gx * gx + gy * gy).toFloat()).toInt()
+                val mag = sqrt((gx * gx + gy * gy).toFloat()).toInt()
+                gradientMag[y * width + x] = mag
+                
+                if (mag > 0) {
+                    maxGradient = maxOf(maxGradient, mag)
+                    sumGradient += mag
+                    gradientCount++
+                }
             }
         }
 
-        // Non-maximum suppression and thresholding
+        // Calculate adaptive thresholds based on gradient statistics
+        val avgGradient = if (gradientCount > 0) (sumGradient / gradientCount).toInt() else 50
+        val highThreshold = maxOf(avgGradient, 40)
+        val lowThreshold = highThreshold / 2
+
+        // Non-maximum suppression and double thresholding
         val result = IntArray(width * height)
-        val highThreshold = 100
-        val lowThreshold = 50
+        val strong = 255
+        val weak = 100
 
         for (y in 1 until height - 1) {
             for (x in 1 until width - 1) {
@@ -273,10 +302,31 @@ class DocumentBorderDetector {
                 val neighbor1 = gradientMag[(y + dy1) * width + (x + dx1)]
                 val neighbor2 = gradientMag[(y + dy2) * width + (x + dx2)]
 
-                if (mag >= neighbor1 && mag >= neighbor2 && mag >= highThreshold) {
-                    result[idx] = 255
+                if (mag >= neighbor1 && mag >= neighbor2) {
+                    result[idx] = if (mag >= highThreshold) strong else weak
                 } else {
                     result[idx] = 0
+                }
+            }
+        }
+        
+        // Edge tracking by hysteresis - connect weak edges to strong edges
+        for (y in 1 until height - 1) {
+            for (x in 1 until width - 1) {
+                val idx = y * width + x
+                if (result[idx] == weak) {
+                    // Check if connected to a strong edge
+                    var hasStrongNeighbor = false
+                    for (dy in -1..1) {
+                        for (dx in -1..1) {
+                            if (result[(y + dy) * width + (x + dx)] == strong) {
+                                hasStrongNeighbor = true
+                                break
+                            }
+                        }
+                        if (hasStrongNeighbor) break
+                    }
+                    result[idx] = if (hasStrongNeighbor) strong else 0
                 }
             }
         }
@@ -285,7 +335,7 @@ class DocumentBorderDetector {
         val edgeBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val edgePixels = IntArray(width * height)
         for (i in result.indices) {
-            val v = result[i]
+            val v = if (result[i] == strong) 255 else 0
             edgePixels[i] = (0xFF shl 24) or (v shl 16) or (v shl 8) or v
         }
         edgeBitmap.setPixels(edgePixels, 0, width, 0, 0, width, height)
@@ -311,9 +361,15 @@ class DocumentBorderDetector {
             }
         }
 
-        if (edgePoints.size < 100) {
+        if (edgePoints.size < MIN_EDGE_POINTS) {
             // Not enough edges detected, return default corners with margin
             return createDefaultCorners(width, height)
+        }
+
+        // Try to find the largest quadrilateral contour first
+        val contourCorners = findLargestQuadrilateralContour(pixels, width, height)
+        if (contourCorners != null) {
+            return contourCorners
         }
 
         // Use Hough transform to detect lines
@@ -330,6 +386,216 @@ class DocumentBorderDetector {
         // Fallback: find convex hull corners
         return findConvexHullCorners(edgePoints, width, height)
     }
+
+    /**
+     * Find the largest quadrilateral contour in the edge image.
+     * This is better suited for detecting document boundaries.
+     */
+    private fun findLargestQuadrilateralContour(pixels: IntArray, width: Int, height: Int): DetectedCorners? {
+        // Find contours using a simple contour tracing algorithm
+        val visited = BooleanArray(width * height)
+        val contours = mutableListOf<List<PointF>>()
+        
+        for (y in 1 until height - 1) {
+            for (x in 1 until width - 1) {
+                val idx = y * width + x
+                if ((pixels[idx] and 0xFF) > 128 && !visited[idx]) {
+                    // Start tracing a contour
+                    val contour = traceContour(pixels, visited, width, height, x, y)
+                    if (contour.size >= MIN_CONTOUR_SIZE) {
+                        contours.add(contour)
+                    }
+                }
+            }
+        }
+        
+        // Find the largest contour by area
+        var largestContour: List<PointF>? = null
+        var maxArea = 0.0
+        
+        for (contour in contours) {
+            val area = calculateContourArea(contour)
+            val imageArea = width.toDouble() * height
+            
+            // Contour should cover at least the minimum ratio of the image
+            if (area > imageArea * MIN_CONTOUR_AREA_RATIO && area > maxArea) {
+                maxArea = area
+                largestContour = contour
+            }
+        }
+        
+        if (largestContour == null || largestContour.size < 4) {
+            return null
+        }
+        
+        // Simplify the contour to a quadrilateral using Douglas-Peucker algorithm
+        val simplified = simplifyContour(largestContour, largestContour.size / CONTOUR_SIMPLIFICATION_DIVISOR)
+        
+        // Try to find 4 corner points
+        val corners = findFourCorners(simplified, width, height)
+        
+        return if (corners != null) {
+            // Calculate confidence based on how well the contour covers the image
+            val confidence = (maxArea / (width.toDouble() * height)).coerceIn(0.3, 0.95).toFloat()
+            DetectedCorners(
+                topLeft = corners[0],
+                topRight = corners[1],
+                bottomRight = corners[2],
+                bottomLeft = corners[3],
+                confidence = confidence
+            )
+        } else {
+            null
+        }
+    }
+
+    private fun traceContour(
+        pixels: IntArray, 
+        visited: BooleanArray, 
+        width: Int, 
+        height: Int, 
+        startX: Int, 
+        startY: Int
+    ): List<PointF> {
+        val contour = mutableListOf<PointF>()
+        val stack = ArrayDeque<Pair<Int, Int>>()
+        stack.add(Pair(startX, startY))
+        
+        val directions = arrayOf(
+            Pair(-1, -1), Pair(0, -1), Pair(1, -1),
+            Pair(-1, 0),              Pair(1, 0),
+            Pair(-1, 1),  Pair(0, 1),  Pair(1, 1)
+        )
+        
+        while (stack.isNotEmpty() && contour.size < MAX_CONTOUR_POINTS) {
+            val (x, y) = stack.removeLast()
+            val idx = y * width + x
+            
+            if (x < 1 || x >= width - 1 || y < 1 || y >= height - 1) continue
+            if (visited[idx]) continue
+            if ((pixels[idx] and 0xFF) <= 128) continue
+            
+            visited[idx] = true
+            contour.add(PointF(x.toFloat(), y.toFloat()))
+            
+            for ((dx, dy) in directions) {
+                val nx = x + dx
+                val ny = y + dy
+                val nidx = ny * width + nx
+                if (nidx in pixels.indices && !visited[nidx] && (pixels[nidx] and 0xFF) > 128) {
+                    stack.add(Pair(nx, ny))
+                }
+            }
+        }
+        
+        return contour
+    }
+
+    private fun calculateContourArea(contour: List<PointF>): Double {
+        if (contour.size < 3) return 0.0
+        
+        // Shoelace formula for polygon area
+        var area = 0.0
+        val n = contour.size
+        for (i in 0 until n) {
+            val j = (i + 1) % n
+            area += contour[i].x * contour[j].y
+            area -= contour[j].x * contour[i].y
+        }
+        return abs(area) / 2.0
+    }
+
+    private fun simplifyContour(contour: List<PointF>, epsilon: Double): List<PointF> {
+        if (contour.size < 3) return contour
+        
+        // Find point with maximum distance from line between first and last
+        var maxDistance = 0.0
+        var maxIndex = 0
+        
+        val first = contour.first()
+        val last = contour.last()
+        
+        for (i in 1 until contour.size - 1) {
+            val distance = perpendicularDistance(contour[i], first, last)
+            if (distance > maxDistance) {
+                maxDistance = distance
+                maxIndex = i
+            }
+        }
+        
+        return if (maxDistance > epsilon) {
+            val left = simplifyContour(contour.subList(0, maxIndex + 1), epsilon)
+            val right = simplifyContour(contour.subList(maxIndex, contour.size), epsilon)
+            left.dropLast(1) + right
+        } else {
+            listOf(first, last)
+        }
+    }
+
+    private fun perpendicularDistance(point: PointF, lineStart: PointF, lineEnd: PointF): Double {
+        val dx = lineEnd.x - lineStart.x
+        val dy = lineEnd.y - lineStart.y
+        
+        if (dx == 0f && dy == 0f) {
+            return hypot((point.x - lineStart.x).toDouble(), (point.y - lineStart.y).toDouble())
+        }
+        
+        val num = abs(dy * point.x - dx * point.y + lineEnd.x * lineStart.y - lineEnd.y * lineStart.x)
+        val den = hypot(dx.toDouble(), dy.toDouble())
+        
+        return num / den
+    }
+
+    private fun findFourCorners(contour: List<PointF>, width: Int, height: Int): List<PointF>? {
+        if (contour.size < 4) return null
+        
+        // Find corners as points closest to image corners
+        val imageCorners = listOf(
+            PointF(0f, 0f),           // top-left
+            PointF(width.toFloat(), 0f),    // top-right
+            PointF(width.toFloat(), height.toFloat()), // bottom-right
+            PointF(0f, height.toFloat())    // bottom-left
+        )
+        
+        val corners = mutableListOf<PointF>()
+        
+        for (imageCorner in imageCorners) {
+            var minDist = Float.MAX_VALUE
+            var closest = contour.first()
+            
+            for (point in contour) {
+                val dist = hypot(
+                    (point.x - imageCorner.x).toDouble(),
+                    (point.y - imageCorner.y).toDouble()
+                ).toFloat()
+                
+                if (dist < minDist) {
+                    minDist = dist
+                    closest = point
+                }
+            }
+            corners.add(closest)
+        }
+        
+        // Validate that corners form a reasonable quadrilateral
+        // Corners should be in different quadrants
+        val centerX = width / 2f
+        val centerY = height / 2f
+        
+        val topLeft = corners[0]
+        val topRight = corners[1]
+        val bottomRight = corners[2]
+        val bottomLeft = corners[3]
+        
+        // Basic validation: corners should be roughly in expected positions
+        if (topLeft.x > centerX || topLeft.y > centerY) return null
+        if (topRight.x < centerX || topRight.y > centerY) return null
+        if (bottomRight.x < centerX || bottomRight.y < centerY) return null
+        if (bottomLeft.x > centerX || bottomLeft.y < centerY) return null
+        
+        return corners
+    }
+
 
     private fun detectLines(points: List<PointF>, width: Int, height: Int): List<Line> {
         // Simplified Hough transform
