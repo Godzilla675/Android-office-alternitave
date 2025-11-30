@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Content padding -->
+    <dimen name="content_padding_horizontal">16dp</dimen>
+    <dimen name="content_padding_vertical">16dp</dimen>
+    
+    <!-- Card dimensions -->
+    <dimen name="card_corner_radius">16dp</dimen>
+    <dimen name="hero_card_corner_radius">28dp</dimen>
+    
+    <!-- Template card -->
+    <dimen name="template_card_width">140dp</dimen>
+    <dimen name="template_card_icon_size">48dp</dimen>
+    
+    <!-- Quick action card -->
+    <dimen name="quick_action_card_width">100dp</dimen>
+    <dimen name="quick_action_icon_size">44dp</dimen>
+    
+    <!-- Recent file item -->
+    <dimen name="recent_file_icon_size">48dp</dimen>
+    
+    <!-- Icon sizes -->
+    <dimen name="icon_size_small">20dp</dimen>
+    <dimen name="icon_size_medium">24dp</dimen>
+    <dimen name="icon_size_large">48dp</dimen>
+    
+    <!-- Toolbar -->
+    <dimen name="toolbar_height">56dp</dimen>
+    
+    <!-- FAB margin -->
+    <dimen name="fab_margin">16dp</dimen>
+    
+    <!-- Bottom navigation height -->
+    <dimen name="bottom_nav_height">80dp</dimen>
+    
+    <!-- Content max width for large screens -->
+    <dimen name="content_max_width">0dp</dimen>
+    
+    <!-- Settings card width -->
+    <dimen name="settings_content_max_width">0dp</dimen>
+    
+    <!-- Recent files grid span count -->
+    <integer name="recent_files_span_count">1</integer>
+    
+    <!-- Templates span count -->
+    <integer name="templates_span_count">4</integer>
+    
+    <!-- Quick actions span count -->
+    <integer name="quick_actions_span_count">5</integer>
+</resources>

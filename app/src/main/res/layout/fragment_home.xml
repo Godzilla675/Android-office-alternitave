@@ -157,7 +157,20 @@
 
             </LinearLayout>
 
+            <!-- Templates RecyclerView (hidden on phones, visible on tablets) -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerTemplates"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="28dp"
+                android:clipToPadding="false"
+                android:overScrollMode="never"
+                android:visibility="gone"
+                tools:itemCount="4"
+                tools:listitem="@layout/item_template" />
+
             <HorizontalScrollView
+                android:id="@+id/templatesScrollView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="28dp"

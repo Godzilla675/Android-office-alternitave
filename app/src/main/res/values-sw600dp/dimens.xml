@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tablet-specific dimensions (600dp+) -->
+    
+    <!-- Content padding - larger for tablets -->
+    <dimen name="content_padding_horizontal">24dp</dimen>
+    <dimen name="content_padding_vertical">24dp</dimen>
+    
+    <!-- Card dimensions - larger for tablets -->
+    <dimen name="card_corner_radius">20dp</dimen>
+    <dimen name="hero_card_corner_radius">32dp</dimen>
+    
+    <!-- Template card - larger for tablets -->
+    <dimen name="template_card_width">180dp</dimen>
+    <dimen name="template_card_icon_size">56dp</dimen>
+    
+    <!-- Quick action card - larger for tablets -->
+    <dimen name="quick_action_card_width">130dp</dimen>
+    <dimen name="quick_action_icon_size">52dp</dimen>
+    
+    <!-- Recent file item - larger for tablets -->
+    <dimen name="recent_file_icon_size">56dp</dimen>
+    
+    <!-- Icon sizes - larger for tablets -->
+    <dimen name="icon_size_small">24dp</dimen>
+    <dimen name="icon_size_medium">28dp</dimen>
+    <dimen name="icon_size_large">56dp</dimen>
+    
+    <!-- Toolbar - larger for tablets -->
+    <dimen name="toolbar_height">64dp</dimen>
+    
+    <!-- FAB margin - larger for tablets -->
+    <dimen name="fab_margin">24dp</dimen>
+    
+    <!-- Navigation rail width -->
+    <dimen name="nav_rail_width">80dp</dimen>
+    
+    <!-- Content max width for large screens -->
+    <dimen name="content_max_width">840dp</dimen>
+    
+    <!-- Settings card max width for readability -->
+    <dimen name="settings_content_max_width">600dp</dimen>
+    
+    <!-- Recent files grid span count for tablets -->
+    <integer name="recent_files_span_count">2</integer>
+    
+    <!-- Templates span count for tablets -->
+    <integer name="templates_span_count">5</integer>
+    
+    <!-- Quick actions span count for tablets -->
+    <integer name="quick_actions_span_count">5</integer>
+    
+    <!-- Use navigation rail on tablets -->
+    <bool name="use_navigation_rail">true</bool>
+</resources>

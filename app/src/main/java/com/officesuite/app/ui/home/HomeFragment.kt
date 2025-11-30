@@ -11,6 +11,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.officesuite.app.R
 import com.officesuite.app.data.model.DocumentFile
@@ -63,6 +64,9 @@ class HomeFragment : Fragment() {
     }
 
     private fun setupRecyclerViews() {
+        // Check if we're on a tablet (for future use)
+        val recentFilesSpanCount = resources.getInteger(R.integer.recent_files_span_count)
+        
         // Quick Actions
         val quickActions = listOf(
             QuickAction("PDF", R.drawable.ic_pdf, DocumentType.PDF),
@@ -85,13 +89,17 @@ class HomeFragment : Fragment() {
             adapter = quickActionsAdapter
         }
 
-        // Recent Files
+        // Recent Files - use grid on tablets
         recentFilesAdapter = RecentFilesAdapter(emptyList()) { file ->
             openDocument(file)
         }
         
         binding.recyclerRecentFiles.apply {
-            layoutManager = LinearLayoutManager(context)
+            layoutManager = if (recentFilesSpanCount > 1) {
+                GridLayoutManager(context, recentFilesSpanCount)
+            } else {
+                LinearLayoutManager(context)
+            }
             adapter = recentFilesAdapter
         }
     }

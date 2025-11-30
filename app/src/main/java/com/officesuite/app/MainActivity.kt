@@ -21,6 +21,8 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.navigationrail.NavigationRailView
 import com.officesuite.app.databinding.ActivityMainBinding
 import com.officesuite.app.ui.onboarding.OnboardingManager
 import com.officesuite.app.ui.update.UpdateDialogFragment
@@ -34,6 +36,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var navController: NavController
     private var isInPipMode = false
+    private var useNavigationRail = false
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -102,8 +105,27 @@ class MainActivity : AppCompatActivity() {
             .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navController = navHostFragment.navController
 
-        val bottomNav: BottomNavigationView = binding.bottomNavigation
-        bottomNav.setupWithNavController(navController)
+        // Check if we should use navigation rail (tablets) or bottom nav (phones)
+        useNavigationRail = resources.getBoolean(R.bool.use_navigation_rail)
+        
+        if (useNavigationRail) {
+            // Use Navigation Rail for tablets
+            val navigationRail: NavigationRailView? = findViewById(R.id.navigation_rail)
+            navigationRail?.setupWithNavController(navController)
+            
+            // Setup FAB in navigation rail header for creating new documents
+            val navRailFab: FloatingActionButton? = navigationRail?.headerView?.findViewById(R.id.fabNavRailAdd)
+            navRailFab?.setOnClickListener {
+                navigateToCreateNew()
+            }
+            
+            // Hide bottom navigation on tablets
+            binding.bottomNavigation.visibility = View.GONE
+        } else {
+            // Use Bottom Navigation for phones
+            val bottomNav: BottomNavigationView = binding.bottomNavigation
+            bottomNav.setupWithNavController(navController)
+        }
     }
 
     private fun checkPermissions() {
@@ -338,7 +360,12 @@ class MainActivity : AppCompatActivity() {
         isInPipMode = isInPictureInPictureMode
         
         // Hide or show UI elements based on PiP mode
-        binding.bottomNavigation.visibility = if (isInPictureInPictureMode) View.GONE else View.VISIBLE
+        if (useNavigationRail) {
+            val navigationRail: NavigationRailView? = findViewById(R.id.navigation_rail)
+            navigationRail?.visibility = if (isInPictureInPictureMode) View.GONE else View.VISIBLE
+        } else {
+            binding.bottomNavigation.visibility = if (isInPictureInPictureMode) View.GONE else View.VISIBLE
+        }
     }
 
     fun isInPipMode(): Boolean = isInPipMode
