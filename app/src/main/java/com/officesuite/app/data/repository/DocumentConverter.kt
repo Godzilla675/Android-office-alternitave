@@ -43,6 +43,7 @@ class DocumentConverter(private val context: Context) {
     companion object {
         // Base resolution for slide rendering (used for scaling calculations)
         private const val BASE_SLIDE_WIDTH = 960
+        // BASE_SLIDE_HEIGHT kept for future aspect ratio calculations if needed
         @Suppress("unused")
         private const val BASE_SLIDE_HEIGHT = 540
         
@@ -819,8 +820,9 @@ class DocumentConverter(private val context: Context) {
                         block.boundingBox?.let { box ->
                             // Calculate position: PDF coordinates start from bottom-left,
                             // Android coordinates start from top-left. Convert y coordinate.
+                            // Use box.bottom for baseline positioning in PDF.
                             val x = box.left.toFloat()
-                            val y = bitmap.height - box.top.toFloat()
+                            val y = bitmap.height - box.bottom.toFloat()
                             val blockHeight = (box.bottom - box.top).toFloat()
                             
                             // Calculate appropriate font size based on bounding box height
