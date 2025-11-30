@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
+import com.google.gson.reflect.TypeToken
 import com.officesuite.app.BuildConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -26,6 +27,7 @@ object UpdateChecker {
         @SerializedName("name") val name: String,
         @SerializedName("body") val body: String,
         @SerializedName("html_url") val htmlUrl: String,
+        @SerializedName("published_at") val publishedAt: String = "",
         @SerializedName("assets") val assets: List<Asset>
     )
     
@@ -184,6 +186,39 @@ object UpdateChecker {
             return false // Versions are equal
         } catch (e: Exception) {
             return false
+        }
+    }
+    
+    /**
+     * Fetch all releases from GitHub releases API.
+     * Returns a list of ReleaseInfo objects.
+     */
+    suspend fun getAllReleases(): List<ReleaseInfo> {
+        return withContext(Dispatchers.IO) {
+            var connection: HttpURLConnection? = null
+            try {
+                val owner = BuildConfig.GITHUB_REPO_OWNER
+                val repo = BuildConfig.GITHUB_REPO_NAME
+                val url = URL("https://api.github.com/repos/$owner/$repo/releases")
+                
+                connection = url.openConnection() as HttpURLConnection
+                connection.requestMethod = "GET"
+                connection.setRequestProperty("Accept", "application/vnd.github+json")
+                connection.connectTimeout = 10000
+                connection.readTimeout = 10000
+                
+                if (connection.responseCode == HttpURLConnection.HTTP_OK) {
+                    val response = connection.inputStream.bufferedReader().use { it.readText() }
+                    val listType = object : TypeToken<List<ReleaseInfo>>() {}.type
+                    return@withContext Gson().fromJson<List<ReleaseInfo>>(response, listType)
+                }
+                return@withContext emptyList()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                return@withContext emptyList()
+            } finally {
+                connection?.disconnect()
+            }
         }
     }
 }

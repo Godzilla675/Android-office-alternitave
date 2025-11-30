@@ -860,4 +860,13 @@
     <string name="update_check_failed">Failed to check for updates</string>
     <string name="auto_check_updates">Auto-check for updates</string>
     <string name="downloading_update">Opening download page...</string>
+    
+    <!-- Releases Page -->
+    <string name="releases">Releases</string>
+    <string name="view_all_releases">View All Releases</string>
+    <string name="no_releases">No Releases Yet</string>
+    <string name="no_releases_description">Check back later for new releases and updates.</string>
+    <string name="current">Current</string>
+    <string name="download">Download</string>
+    <string name="loading_releases">Loading releases...</string>
 </resources>

@@ -195,6 +195,11 @@ class SettingsFragment : Fragment() {
             checkForUpdates()
         }
         
+        // View all releases
+        binding.cardViewReleases.setOnClickListener {
+            findNavController().navigate(R.id.releasesFragment)
+        }
+        
         // Platform Features navigation
         binding.cardPlatformFeatures.setOnClickListener {
             findNavController().navigate(R.id.platformFeaturesFragment)
