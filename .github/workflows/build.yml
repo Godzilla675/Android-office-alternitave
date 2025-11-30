@@ -57,8 +57,12 @@ jobs:
           APK_PATH=$(find app/build/outputs/apk/release -name "*.apk" -type f | head -1)
           echo "Found APK: $APK_PATH"
           
-          # Find apksigner in Android SDK
-          APKSIGNER=$(find "$ANDROID_SDK_ROOT/build-tools" -name "apksigner" 2>/dev/null | sort -V | tail -1)
+          # Find apksigner in Android SDK (use sort -V on GitHub Actions Ubuntu runners which have GNU coreutils)
+          APKSIGNER=$(find "$ANDROID_SDK_ROOT/build-tools" -name "apksigner" 2>/dev/null | sort -V 2>/dev/null | tail -1)
+          # Fallback: if sort -V fails, just use the first one found
+          if [ -z "$APKSIGNER" ]; then
+            APKSIGNER=$(find "$ANDROID_SDK_ROOT/build-tools" -name "apksigner" 2>/dev/null | head -1)
+          fi
           
           if [ -n "$APKSIGNER" ]; then
             echo "Verifying APK signature with apksigner..."
