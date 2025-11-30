@@ -6,10 +6,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
+import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.checkbox.MaterialCheckBox
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.officesuite.app.R
 import com.officesuite.app.data.model.ConversionOptions
 import com.officesuite.app.data.model.DocumentType
@@ -76,7 +80,7 @@ class ConverterFragment : Fragment() {
 
         binding.btnConvert.setOnClickListener {
             if (selectedUri != null) {
-                convertDocument()
+                showConversionDialog()
             } else {
                 Toast.makeText(context, "Please select a file first", Toast.LENGTH_SHORT).show()
             }
@@ -112,7 +116,91 @@ class ConverterFragment : Fragment() {
         binding.spinnerOutputFormat.adapter = adapter
     }
 
-    private fun convertDocument() {
+    /**
+     * Shows a dialog to customize the output file name and OCR options before conversion.
+     */
+    private fun showConversionDialog() {
+        val uri = selectedUri ?: return
+        val fileName = FileUtils.getFileName(requireContext(), uri)
+        val baseName = fileName.substringBeforeLast('.')
+        
+        val targetFormatString = binding.spinnerOutputFormat.selectedItem as String
+        val targetType = when (targetFormatString) {
+            "PDF" -> DocumentType.PDF
+            "DOCX" -> DocumentType.DOCX
+            "PPTX" -> DocumentType.PPTX
+            "Markdown" -> DocumentType.MARKDOWN
+            "Text" -> DocumentType.TXT
+            else -> DocumentType.PDF
+        }
+        
+        // Create a custom layout for the dialog
+        val dialogLayout = android.widget.LinearLayout(requireContext()).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            setPadding(48, 32, 48, 16)
+        }
+        
+        // Add filename input
+        val fileNameLabel = android.widget.TextView(requireContext()).apply {
+            text = "Output file name:"
+            textSize = 14f
+        }
+        dialogLayout.addView(fileNameLabel)
+        
+        val fileNameInput = EditText(requireContext()).apply {
+            setText(baseName)
+            hint = "Enter file name"
+            setSelectAllOnFocus(true)
+        }
+        dialogLayout.addView(fileNameInput)
+        
+        // Add extension preview
+        val extensionPreview = android.widget.TextView(requireContext()).apply {
+            text = "File will be saved as: ${baseName}.${targetType.extension}"
+            textSize = 12f
+            setTextColor(android.graphics.Color.GRAY)
+            setPadding(0, 8, 0, 16)
+        }
+        dialogLayout.addView(extensionPreview)
+        
+        // Update extension preview when filename changes
+        fileNameInput.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: android.text.Editable?) {
+                extensionPreview.text = "File will be saved as: ${s.toString()}.${targetType.extension}"
+            }
+        })
+        
+        // Add OCR checkbox for PDF conversions
+        var ocrEnabled = false
+        if (targetType == DocumentType.PDF && (sourceType == DocumentType.PPTX || sourceType == DocumentType.DOCX)) {
+            val ocrCheckbox = MaterialCheckBox(requireContext()).apply {
+                text = "Enable OCR (makes text selectable)"
+                isChecked = false
+                setOnCheckedChangeListener { _, isChecked ->
+                    ocrEnabled = isChecked
+                }
+            }
+            dialogLayout.addView(ocrCheckbox)
+        }
+        
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Convert File")
+            .setView(dialogLayout)
+            .setPositiveButton("Convert") { _, _ ->
+                val customName = fileNameInput.text.toString().trim()
+                if (customName.isNotEmpty()) {
+                    convertDocument(customName, ocrEnabled)
+                } else {
+                    Toast.makeText(context, "Please enter a valid file name", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun convertDocument(customOutputName: String? = null, ocrEnabled: Boolean = false) {
         val uri = selectedUri ?: return
         
         binding.progressBar.visibility = View.VISIBLE
@@ -137,10 +225,11 @@ class ConverterFragment : Fragment() {
                 if (inputFile != null) {
                     val options = ConversionOptions(
                         sourceFormat = sourceType,
-                        targetFormat = targetType
+                        targetFormat = targetType,
+                        ocrEnabled = ocrEnabled
                     )
                     
-                    val result = documentConverter.convert(inputFile, options)
+                    val result = documentConverter.convert(inputFile, options, customOutputName)
                     
                     binding.progressBar.visibility = View.GONE
                     binding.btnConvert.isEnabled = true
