@@ -411,19 +411,23 @@ class DocumentConverter(private val context: Context) {
             slideBitmaps.forEachIndexed { index, bitmap ->
                 // Convert bitmap to byte array
                 val stream = ByteArrayOutputStream()
-                bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
-                val imageBytes = stream.toByteArray()
-                
-                // Create page with slide dimensions (landscape)
-                val pageSize = PageSize(slideWidth.toFloat(), slideHeight.toFloat())
-                pdfDoc.addNewPage(pageSize)
-                
-                // Add image to page
-                val imageData = ImageDataFactory.create(imageBytes)
-                val image = Image(imageData)
-                image.setFixedPosition(index + 1, 0f, 0f)
-                image.scaleToFit(pageSize.width, pageSize.height)
-                document.add(image)
+                try {
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+                    val imageBytes = stream.toByteArray()
+                    
+                    // Create page with slide dimensions (landscape)
+                    val pageSize = PageSize(slideWidth.toFloat(), slideHeight.toFloat())
+                    pdfDoc.addNewPage(pageSize)
+                    
+                    // Add image to page
+                    val imageData = ImageDataFactory.create(imageBytes)
+                    val image = Image(imageData)
+                    image.setFixedPosition(index + 1, 0f, 0f)
+                    image.scaleToFit(pageSize.width, pageSize.height)
+                    document.add(image)
+                } finally {
+                    stream.close()
+                }
             }
             
             document.close()
@@ -474,10 +478,11 @@ class DocumentConverter(private val context: Context) {
             when (shape) {
                 is XSLFPictureShape -> {
                     // Render images
+                    var imageBitmap: Bitmap? = null
                     try {
                         val pictureData = shape.pictureData
                         val imageBytes = pictureData.data
-                        val imageBitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+                        imageBitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
                         
                         if (imageBitmap != null) {
                             hasContent = true
@@ -493,12 +498,12 @@ class DocumentConverter(private val context: Context) {
                             
                             val destRect = RectF(left, top, left + scaledWidth, top + scaledHeight)
                             canvas.drawBitmap(imageBitmap, null, destRect, null)
-                            
-                            imageBitmap.recycle()
                         }
                     } catch (e: Exception) {
                         e.printStackTrace()
                         // Continue with other shapes
+                    } finally {
+                        imageBitmap?.recycle()
                     }
                 }
                 is XSLFTextShape -> {

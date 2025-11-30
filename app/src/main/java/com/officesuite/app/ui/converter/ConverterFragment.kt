@@ -172,9 +172,9 @@ class ConverterFragment : Fragment() {
             }
         })
         
-        // Add OCR checkbox for PDF conversions
+        // Add OCR checkbox for PDF conversions where OCR is supported
         var ocrEnabled = false
-        if (targetType == DocumentType.PDF && (sourceType == DocumentType.PPTX || sourceType == DocumentType.DOCX)) {
+        if (isOcrSupported(sourceType, targetType)) {
             val ocrCheckbox = MaterialCheckBox(requireContext()).apply {
                 text = "Enable OCR (makes text selectable)"
                 isChecked = false
@@ -286,6 +286,14 @@ class ConverterFragment : Fragment() {
         }
         
         Toast.makeText(context, "Conversion complete!", Toast.LENGTH_SHORT).show()
+    }
+
+    /**
+     * Checks if OCR is supported for the given source and target format combination.
+     * OCR is supported when converting to PDF from formats that render as images.
+     */
+    private fun isOcrSupported(source: DocumentType, target: DocumentType): Boolean {
+        return target == DocumentType.PDF && (source == DocumentType.PPTX || source == DocumentType.DOCX)
     }
 
     override fun onDestroyView() {

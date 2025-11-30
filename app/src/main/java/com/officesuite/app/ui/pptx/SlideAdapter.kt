@@ -145,10 +145,11 @@ class SlideAdapter(
             when (shape) {
                 is XSLFPictureShape -> {
                     // Render images
+                    var imageBitmap: Bitmap? = null
                     try {
                         val pictureData = shape.pictureData
                         val imageBytes = pictureData.data
-                        val imageBitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+                        imageBitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
                         
                         if (imageBitmap != null) {
                             hasContent = true
@@ -164,12 +165,12 @@ class SlideAdapter(
                             
                             val destRect = RectF(left, top, left + scaledWidth, top + scaledHeight)
                             canvas.drawBitmap(imageBitmap, null, destRect, null)
-                            
-                            imageBitmap.recycle()
                         }
                     } catch (e: Exception) {
                         e.printStackTrace()
                         // Continue with other shapes
+                    } finally {
+                        imageBitmap?.recycle()
                     }
                 }
                 is XSLFTextShape -> {
