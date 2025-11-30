@@ -40,6 +40,25 @@ import android.graphics.RectF
 
 class DocumentConverter(private val context: Context) {
 
+    companion object {
+        // Base resolution for slide rendering (used for scaling calculations)
+        private const val BASE_SLIDE_WIDTH = 960
+        @Suppress("unused")
+        private const val BASE_SLIDE_HEIGHT = 540
+        
+        // High resolution output dimensions (Full HD 16:9)
+        private const val HIGH_RES_SLIDE_WIDTH = 1920
+        private const val HIGH_RES_SLIDE_HEIGHT = 1080
+        
+        // OCR text sizing constants
+        private const val OCR_FONT_SIZE_RATIO = 0.8f  // Use 80% of detected block height
+        private const val OCR_MIN_FONT_SIZE = 8f      // Minimum font size for OCR text
+        
+        // Text wrapping threshold (characters before wrapping)
+        private const val TEXT_WRAP_THRESHOLD = 45
+        private const val TEXT_WRAP_THRESHOLD_BUFFER = 5
+    }
+
     /**
      * Convert a file with the given options and an optional custom output filename.
      * 
@@ -390,8 +409,8 @@ class DocumentConverter(private val context: Context) {
         
         try {
             // Use high resolution 16:9 presentation dimensions for better PDF quality
-            val slideWidth = 1920
-            val slideHeight = 1080
+            val slideWidth = HIGH_RES_SLIDE_WIDTH
+            val slideHeight = HIGH_RES_SLIDE_HEIGHT
             
             // Render each slide to a bitmap
             val slideBitmaps = mutableListOf<Bitmap>()
@@ -455,8 +474,8 @@ class DocumentConverter(private val context: Context) {
         // Draw white background
         canvas.drawColor(Color.WHITE)
         
-        // Scale factor for text sizes based on resolution (base resolution is 960x540)
-        val scaleFactor = width / 960f
+        // Scale factor for text sizes based on resolution
+        val scaleFactor = width / BASE_SLIDE_WIDTH.toFloat()
         
         val titlePaint = android.graphics.Paint().apply {
             color = Color.BLACK
@@ -524,13 +543,13 @@ class DocumentConverter(private val context: Context) {
                             }
                             
                             val trimmedLine = line.trim()
-                            if (trimmedLine.length > 50) {
+                            if (trimmedLine.length > TEXT_WRAP_THRESHOLD + TEXT_WRAP_THRESHOLD_BUFFER) {
                                 // Word wrap long lines
                                 val words = trimmedLine.split(" ")
                                 val lineBuilder = StringBuilder()
                                 for (word in words) {
                                     val testLine = if (lineBuilder.isEmpty()) word else "$lineBuilder $word"
-                                    if (testLine.length > 45) {
+                                    if (testLine.length > TEXT_WRAP_THRESHOLD) {
                                         drawSlideTextLine(canvas, lineBuilder.toString(), yPosition, isFirstText, titlePaint, textPaint, width, scaleFactor)
                                         yPosition += if (isFirstText) 50f * scaleFactor else 35f * scaleFactor
                                         isFirstText = false
@@ -606,8 +625,8 @@ class DocumentConverter(private val context: Context) {
         
         try {
             // Use high resolution 16:9 presentation dimensions for better PDF quality
-            val slideWidth = 1920
-            val slideHeight = 1080
+            val slideWidth = HIGH_RES_SLIDE_WIDTH
+            val slideHeight = HIGH_RES_SLIDE_HEIGHT
             
             // Render each slide to a bitmap
             val slideBitmaps = mutableListOf<Bitmap>()
@@ -792,20 +811,20 @@ class DocumentConverter(private val context: Context) {
                 if (index < ocrResults.size && ocrResults[index].success) {
                     val ocrResult = ocrResults[index]
                     
-                    // Set text rendering mode to invisible (mode 3 = invisible)
+                    // Set text rendering mode to invisible for OCR text layer
                     pdfCanvas.setTextRenderingMode(com.itextpdf.kernel.pdf.canvas.PdfCanvasConstants.TextRenderingMode.INVISIBLE)
                     
                     // Add text blocks at their detected positions
                     for (block in ocrResult.blocks) {
                         block.boundingBox?.let { box ->
-                            // Calculate position (PDF coordinates start from bottom-left)
+                            // Calculate position: PDF coordinates start from bottom-left,
+                            // Android coordinates start from top-left. Convert y coordinate.
                             val x = box.left.toFloat()
-                            val y = bitmap.height - box.bottom.toFloat()
+                            val y = bitmap.height - box.top.toFloat()
                             val blockHeight = (box.bottom - box.top).toFloat()
                             
                             // Calculate appropriate font size based on bounding box height
-                            // Use 80% of block height for better text matching
-                            val fontSize = maxOf(blockHeight * 0.8f, 8f)
+                            val fontSize = maxOf(blockHeight * OCR_FONT_SIZE_RATIO, OCR_MIN_FONT_SIZE)
                             
                             pdfCanvas.beginText()
                                 .setFontAndSize(font, fontSize)
