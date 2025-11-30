@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Use navigation rail on large tablets (sw720dp+) -->
+    <bool name="use_navigation_rail">true</bool>
+</resources>

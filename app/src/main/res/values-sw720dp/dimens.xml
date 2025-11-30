@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Large tablet-specific dimensions (720dp+) -->
+    
+    <!-- Content padding - even larger for large tablets -->
+    <dimen name="content_padding_horizontal">32dp</dimen>
+    <dimen name="content_padding_vertical">32dp</dimen>
+    
+    <!-- Card dimensions - larger for large tablets -->
+    <dimen name="card_corner_radius">24dp</dimen>
+    <dimen name="hero_card_corner_radius">36dp</dimen>
+    
+    <!-- Template card - larger for large tablets -->
+    <dimen name="template_card_width">200dp</dimen>
+    <dimen name="template_card_icon_size">64dp</dimen>
+    
+    <!-- Quick action card - larger for large tablets -->
+    <dimen name="quick_action_card_width">150dp</dimen>
+    <dimen name="quick_action_icon_size">56dp</dimen>
+    
+    <!-- Recent file item - larger for large tablets -->
+    <dimen name="recent_file_icon_size">64dp</dimen>
+    
+    <!-- Icon sizes - larger for large tablets -->
+    <dimen name="icon_size_small">28dp</dimen>
+    <dimen name="icon_size_medium">32dp</dimen>
+    <dimen name="icon_size_large">64dp</dimen>
+    
+    <!-- Toolbar - larger for large tablets -->
+    <dimen name="toolbar_height">72dp</dimen>
+    
+    <!-- FAB margin - larger for large tablets -->
+    <dimen name="fab_margin">32dp</dimen>
+    
+    <!-- Navigation rail width -->
+    <dimen name="nav_rail_width">88dp</dimen>
+    
+    <!-- Content max width for large screens -->
+    <dimen name="content_max_width">1024dp</dimen>
+    
+    <!-- Settings card max width for readability -->
+    <dimen name="settings_content_max_width">720dp</dimen>
+    
+    <!-- Recent files grid span count for large tablets -->
+    <integer name="recent_files_span_count">3</integer>
+    
+    <!-- Templates span count for large tablets -->
+    <integer name="templates_span_count">6</integer>
+    
+    <!-- Quick actions span count for large tablets -->
+    <integer name="quick_actions_span_count">5</integer>
+</resources>
