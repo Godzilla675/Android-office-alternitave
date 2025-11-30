@@ -21,10 +21,23 @@ android {
         multiDexEnabled true
     }
 
+    signingConfigs {
+        // Use debug signing key for release builds to allow installation without production keys
+        // This is suitable for open-source projects and testing
+        release {
+            storeFile file(System.getProperty("user.home") + "/.android/debug.keystore")
+            storePassword "android"
+            keyAlias "androiddebugkey"
+            keyPassword "android"
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            // Sign release builds with debug key to ensure APK can be installed
+            signingConfig signingConfigs.release
         }
     }
 
