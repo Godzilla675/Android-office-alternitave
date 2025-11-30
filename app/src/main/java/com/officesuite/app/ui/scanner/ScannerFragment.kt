@@ -95,7 +95,9 @@ class ScannerFragment : Fragment() {
     companion object {
         private const val ANALYSIS_WIDTH = 640
         private const val ANALYSIS_HEIGHT = 480
+        private const val JPEG_QUALITY = 50
     }
+    
     // Last scan result for action buttons
     private var lastScanResult: Any? = null
 
@@ -303,6 +305,11 @@ class ScannerFragment : Fragment() {
     private fun imageProxyToBitmap(imageProxy: ImageProxy): Bitmap? {
         val image = imageProxy.image ?: return null
         
+        // Verify we have the expected 3 planes for YUV_420_888
+        if (image.planes.size < 3) {
+            return null
+        }
+        
         // Store actual analysis dimensions
         analysisWidth = image.width
         analysisHeight = image.height
@@ -328,6 +335,8 @@ class ScannerFragment : Fragment() {
             // We need to properly interleave them for NV21
             val vRowStride = image.planes[2].rowStride
             val vPixelStride = image.planes[2].pixelStride
+            val uRowStride = image.planes[1].rowStride
+            val uPixelStride = image.planes[1].pixelStride
             
             if (vPixelStride == 2) {
                 // U and V are already interleaved (common case)
@@ -342,7 +351,7 @@ class ScannerFragment : Fragment() {
                 for (row in 0 until chromaHeight) {
                     for (col in 0 until chromaWidth) {
                         val vIndex = row * vRowStride + col * vPixelStride
-                        val uIndex = row * image.planes[1].rowStride + col * image.planes[1].pixelStride
+                        val uIndex = row * uRowStride + col * uPixelStride
                         
                         if (vIndex < vSize) {
                             vBuffer.position(vIndex)
@@ -358,7 +367,7 @@ class ScannerFragment : Fragment() {
 
             val yuvImage = YuvImage(nv21, android.graphics.ImageFormat.NV21, image.width, image.height, null)
             val out = ByteArrayOutputStream()
-            yuvImage.compressToJpeg(android.graphics.Rect(0, 0, image.width, image.height), 50, out)
+            yuvImage.compressToJpeg(android.graphics.Rect(0, 0, image.width, image.height), JPEG_QUALITY, out)
             val imageBytes = out.toByteArray()
             BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
         } catch (e: Exception) {
@@ -565,7 +574,9 @@ class ScannerFragment : Fragment() {
             if (autoBorderEnabled) {
                 // Use the last detected corners from live preview if available
                 val corners = lastDetectedCorners
-                if (corners != null && corners.confidence >= 0.3f) {
+                // Check for valid analysis dimensions to avoid division by zero
+                val validDimensions = analysisWidth > 0 && analysisHeight > 0
+                if (corners != null && corners.confidence >= 0.3f && validDimensions) {
                     // Scale corners to match the full resolution bitmap
                     // Use the actual analysis dimensions instead of hardcoded values
                     val scaleX = bitmap.width.toFloat() / analysisWidth.toFloat()
