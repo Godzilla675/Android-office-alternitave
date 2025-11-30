@@ -1,5 +1,6 @@
 package com.officesuite.app.ui.xlsx
 
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -11,6 +12,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.officesuite.app.R
 import com.officesuite.app.databinding.FragmentXlsxViewerBinding
+import com.officesuite.app.ui.reader.ReadingModeActivity
 import com.officesuite.app.utils.FileUtils
 import com.officesuite.app.utils.ShareUtils
 import kotlinx.coroutines.Dispatchers
@@ -73,6 +75,10 @@ class XlsxViewerFragment : Fragment() {
             inflateMenu(R.menu.menu_xlsx_viewer)
             setOnMenuItemClickListener { item ->
                 when (item.itemId) {
+                    R.id.action_reading_mode -> {
+                        startReadingMode()
+                        true
+                    }
                     R.id.action_share -> {
                         shareDocument()
                         true
@@ -84,6 +90,18 @@ class XlsxViewerFragment : Fragment() {
                     else -> false
                 }
             }
+        }
+    }
+
+    private fun startReadingMode() {
+        fileUri?.let { uri ->
+            val intent = Intent(requireContext(), ReadingModeActivity::class.java).apply {
+                putExtra(ReadingModeActivity.EXTRA_FILE_URI, uri.toString())
+                putExtra(ReadingModeActivity.EXTRA_DOCUMENT_TYPE, ReadingModeActivity.DocumentType.XLSX.name)
+            }
+            startActivity(intent)
+        } ?: run {
+            Toast.makeText(context, "No spreadsheet loaded", Toast.LENGTH_SHORT).show()
         }
     }
 

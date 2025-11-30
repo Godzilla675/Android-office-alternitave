@@ -3,6 +3,7 @@ package com.officesuite.app.ui.pdf
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -22,6 +23,7 @@ import com.officesuite.app.R
 import com.officesuite.app.data.collaboration.CollaborationRepository
 import com.officesuite.app.databinding.FragmentPdfViewerBinding
 import com.officesuite.app.pdf.PdfTextExtractor
+import com.officesuite.app.ui.reader.ReadingModeActivity
 import com.officesuite.app.utils.ErrorHandler
 import com.officesuite.app.ui.collaboration.CommentsDialogFragment
 import com.officesuite.app.utils.FileUtils
@@ -121,6 +123,10 @@ class PdfViewerFragment : Fragment() {
                         showSearchDialog()
                         true
                     }
+                    R.id.action_reading_mode -> {
+                        startReadingMode()
+                        true
+                    }
                     R.id.action_copy_text -> {
                         copyCurrentPageText()
                         true
@@ -152,6 +158,18 @@ class PdfViewerFragment : Fragment() {
                     else -> false
                 }
             }
+        }
+    }
+
+    private fun startReadingMode() {
+        fileUri?.let { uri ->
+            val intent = Intent(requireContext(), ReadingModeActivity::class.java).apply {
+                putExtra(ReadingModeActivity.EXTRA_FILE_URI, uri.toString())
+                putExtra(ReadingModeActivity.EXTRA_DOCUMENT_TYPE, ReadingModeActivity.DocumentType.PDF.name)
+            }
+            startActivity(intent)
+        } ?: run {
+            Toast.makeText(context, "No document loaded", Toast.LENGTH_SHORT).show()
         }
     }
 

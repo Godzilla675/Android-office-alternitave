@@ -1,5 +1,6 @@
 package com.officesuite.app.ui.docx
 
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.util.Base64
@@ -14,6 +15,7 @@ import androidx.navigation.fragment.findNavController
 import com.officesuite.app.R
 import com.officesuite.app.data.repository.DocumentConverter
 import com.officesuite.app.databinding.FragmentDocxViewerBinding
+import com.officesuite.app.ui.reader.ReadingModeActivity
 import com.officesuite.app.utils.ErrorHandler
 import com.officesuite.app.utils.FileUtils
 import com.officesuite.app.utils.Result
@@ -86,6 +88,10 @@ class DocxViewerFragment : Fragment() {
             inflateMenu(R.menu.menu_docx_viewer)
             setOnMenuItemClickListener { item ->
                 when (item.itemId) {
+                    R.id.action_reading_mode -> {
+                        startReadingMode()
+                        true
+                    }
                     R.id.action_edit -> {
                         openEditor()
                         true
@@ -365,6 +371,18 @@ class DocxViewerFragment : Fragment() {
             .replace(">", "&gt;")
             .replace("\"", "&quot;")
             .replace("'", "&#39;")
+    }
+
+    private fun startReadingMode() {
+        fileUri?.let { uri ->
+            val intent = Intent(requireContext(), ReadingModeActivity::class.java).apply {
+                putExtra(ReadingModeActivity.EXTRA_FILE_URI, uri.toString())
+                putExtra(ReadingModeActivity.EXTRA_DOCUMENT_TYPE, ReadingModeActivity.DocumentType.DOCX.name)
+            }
+            startActivity(intent)
+        } ?: run {
+            Toast.makeText(context, "No document loaded", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun openEditor() {
