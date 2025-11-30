@@ -22,6 +22,19 @@ import kotlin.math.sqrt
  */
 class DocumentBorderDetector {
 
+    companion object {
+        // Minimum number of edge points required for detection
+        private const val MIN_EDGE_POINTS = 50
+        // Minimum ratio of contour area to image area (10%)
+        private const val MIN_CONTOUR_AREA_RATIO = 0.1
+        // Divisor for contour simplification epsilon calculation
+        private const val CONTOUR_SIMPLIFICATION_DIVISOR = 20.0
+        // Maximum number of points to trace in a contour
+        private const val MAX_CONTOUR_POINTS = 5000
+        // Minimum contour size to be considered
+        private const val MIN_CONTOUR_SIZE = 20
+    }
+
     data class DetectedCorners(
         val topLeft: PointF,
         val topRight: PointF,
@@ -348,7 +361,7 @@ class DocumentBorderDetector {
             }
         }
 
-        if (edgePoints.size < 50) {
+        if (edgePoints.size < MIN_EDGE_POINTS) {
             // Not enough edges detected, return default corners with margin
             return createDefaultCorners(width, height)
         }
@@ -389,7 +402,7 @@ class DocumentBorderDetector {
                 if ((pixels[idx] and 0xFF) > 128 && !visited[idx]) {
                     // Start tracing a contour
                     val contour = traceContour(pixels, visited, width, height, x, y)
-                    if (contour.size >= 20) { // Minimum contour size
+                    if (contour.size >= MIN_CONTOUR_SIZE) {
                         contours.add(contour)
                     }
                 }
@@ -404,8 +417,8 @@ class DocumentBorderDetector {
             val area = calculateContourArea(contour)
             val imageArea = width.toDouble() * height
             
-            // Contour should cover at least 10% of the image
-            if (area > imageArea * 0.1 && area > maxArea) {
+            // Contour should cover at least the minimum ratio of the image
+            if (area > imageArea * MIN_CONTOUR_AREA_RATIO && area > maxArea) {
                 maxArea = area
                 largestContour = contour
             }
@@ -416,7 +429,7 @@ class DocumentBorderDetector {
         }
         
         // Simplify the contour to a quadrilateral using Douglas-Peucker algorithm
-        val simplified = simplifyContour(largestContour, largestContour.size / 20.0)
+        val simplified = simplifyContour(largestContour, largestContour.size / CONTOUR_SIMPLIFICATION_DIVISOR)
         
         // Try to find 4 corner points
         val corners = findFourCorners(simplified, width, height)
@@ -454,7 +467,7 @@ class DocumentBorderDetector {
             Pair(-1, 1),  Pair(0, 1),  Pair(1, 1)
         )
         
-        while (stack.isNotEmpty() && contour.size < 5000) {
+        while (stack.isNotEmpty() && contour.size < MAX_CONTOUR_POINTS) {
             val (x, y) = stack.removeLast()
             val idx = y * width + x
             
