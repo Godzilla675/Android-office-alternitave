@@ -2,7 +2,11 @@ package com.officesuite.app.utils
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
 import android.graphics.Matrix
+import android.graphics.Paint
 import androidx.exifinterface.media.ExifInterface
 import java.io.File
 import java.io.FileOutputStream
@@ -78,50 +82,53 @@ object ImageUtils {
         }
     }
 
+    /**
+     * Apply grayscale filter to a bitmap using efficient ColorMatrix processing.
+     * This is much faster than pixel-by-pixel processing.
+     */
     fun applyGrayscaleFilter(bitmap: Bitmap): Bitmap {
         val width = bitmap.width
         val height = bitmap.height
         val result = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-
-        for (x in 0 until width) {
-            for (y in 0 until height) {
-                val pixel = bitmap.getPixel(x, y)
-                val red = (pixel shr 16) and 0xff
-                val green = (pixel shr 8) and 0xff
-                val blue = pixel and 0xff
-                val gray = (red * 0.299 + green * 0.587 + blue * 0.114).toInt()
-                val newPixel = (0xff shl 24) or (gray shl 16) or (gray shl 8) or gray
-                result.setPixel(x, y, newPixel)
-            }
-        }
-
+        
+        val canvas = Canvas(result)
+        val paint = Paint()
+        
+        // Create grayscale color matrix
+        val colorMatrix = ColorMatrix()
+        colorMatrix.setSaturation(0f)
+        
+        paint.colorFilter = ColorMatrixColorFilter(colorMatrix)
+        canvas.drawBitmap(bitmap, 0f, 0f, paint)
+        
         return result
     }
 
+    /**
+     * Apply contrast enhancement to a bitmap using efficient ColorMatrix processing.
+     * This is much faster than pixel-by-pixel processing.
+     */
     fun applyContrastEnhancement(bitmap: Bitmap, contrast: Float = 1.5f): Bitmap {
         val width = bitmap.width
         val height = bitmap.height
         val result = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-
-        val factor = (259 * (contrast * 255 + 255)) / (255 * (259 - contrast * 255))
-
-        for (x in 0 until width) {
-            for (y in 0 until height) {
-                val pixel = bitmap.getPixel(x, y)
-                val alpha = (pixel shr 24) and 0xff
-                var red = (pixel shr 16) and 0xff
-                var green = (pixel shr 8) and 0xff
-                var blue = pixel and 0xff
-
-                red = (factor * (red - 128) + 128).toInt().coerceIn(0, 255)
-                green = (factor * (green - 128) + 128).toInt().coerceIn(0, 255)
-                blue = (factor * (blue - 128) + 128).toInt().coerceIn(0, 255)
-
-                val newPixel = (alpha shl 24) or (red shl 16) or (green shl 8) or blue
-                result.setPixel(x, y, newPixel)
-            }
-        }
-
+        
+        val canvas = Canvas(result)
+        val paint = Paint()
+        
+        // Create contrast enhancement color matrix
+        // Formula: newColor = (color - 128) * contrast + 128
+        val translate = (1f - contrast) * 128f
+        val colorMatrix = ColorMatrix(floatArrayOf(
+            contrast, 0f, 0f, 0f, translate,
+            0f, contrast, 0f, 0f, translate,
+            0f, 0f, contrast, 0f, translate,
+            0f, 0f, 0f, 1f, 0f
+        ))
+        
+        paint.colorFilter = ColorMatrixColorFilter(colorMatrix)
+        canvas.drawBitmap(bitmap, 0f, 0f, paint)
+        
         return result
     }
 }
