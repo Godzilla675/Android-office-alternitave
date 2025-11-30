@@ -615,15 +615,18 @@ class DocumentConverter(private val context: Context) {
                 pageNum++
             }
             
-            // Perform OCR on all slide bitmaps
+            // Perform OCR on all slide bitmaps with proper resource handling
             val ocrManager = OcrManager()
-            val ocrResults = slideBitmaps.map { bitmap ->
-                ocrManager.extractText(bitmap)
+            try {
+                val ocrResults = slideBitmaps.map { bitmap ->
+                    ocrManager.extractText(bitmap)
+                }
+                
+                // Create searchable PDF with OCR text layer
+                createSearchablePdfFromBitmaps(slideBitmaps, ocrResults, outputFile)
+            } finally {
+                ocrManager.close()
             }
-            ocrManager.close()
-            
-            // Create searchable PDF with OCR text layer
-            createSearchablePdfFromBitmaps(slideBitmaps, ocrResults, outputFile)
             
             // Clean up bitmaps
             slideBitmaps.forEach { it.recycle() }
