@@ -20,14 +20,18 @@ echo ""
 
 # Check if APK exists
 APK_DEBUG="$PROJECT_ROOT/app/build/outputs/apk/debug/app-debug.apk"
-APK_RELEASE="$PROJECT_ROOT/app/build/outputs/apk/release/app-release-unsigned.apk"
+APK_RELEASE_SIGNED="$PROJECT_ROOT/app/build/outputs/apk/release/app-release.apk"
+APK_RELEASE_UNSIGNED="$PROJECT_ROOT/app/build/outputs/apk/release/app-release-unsigned.apk"
 
 if [ -f "$APK_DEBUG" ]; then
     APK_PATH="$APK_DEBUG"
     echo -e "${GREEN}Found debug APK${NC}"
-elif [ -f "$APK_RELEASE" ]; then
-    APK_PATH="$APK_RELEASE"
-    echo -e "${GREEN}Found release APK${NC}"
+elif [ -f "$APK_RELEASE_SIGNED" ]; then
+    APK_PATH="$APK_RELEASE_SIGNED"
+    echo -e "${GREEN}Found signed release APK${NC}"
+elif [ -f "$APK_RELEASE_UNSIGNED" ]; then
+    APK_PATH="$APK_RELEASE_UNSIGNED"
+    echo -e "${YELLOW}Found unsigned release APK - this may not install on devices${NC}"
 else
     echo -e "${YELLOW}No APK found. Building debug APK...${NC}"
     cd "$PROJECT_ROOT"

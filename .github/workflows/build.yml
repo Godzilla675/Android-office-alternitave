@@ -32,8 +32,51 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      - name: Create debug keystore for signing
+        run: |
+          # Create .android directory if it doesn't exist
+          mkdir -p ~/.android
+          # Generate debug keystore if it doesn't exist
+          if [ ! -f ~/.android/debug.keystore ]; then
+            keytool -genkeypair -v \
+              -keystore ~/.android/debug.keystore \
+              -storepass android \
+              -alias androiddebugkey \
+              -keypass android \
+              -keyalg RSA \
+              -keysize 2048 \
+              -validity 10000 \
+              -dname "CN=Android Debug,O=Android,C=US"
+          fi
+
       - name: Build release APK
         run: ./gradlew assembleRelease
+
+      - name: Validate APK is properly signed
+        run: |
+          APK_PATH=$(find app/build/outputs/apk/release -name "*.apk" -type f | head -1)
+          echo "Found APK: $APK_PATH"
+          
+          # Find apksigner in Android SDK
+          APKSIGNER=$(find "$ANDROID_SDK_ROOT/build-tools" -name "apksigner" 2>/dev/null | sort -V | tail -1)
+          
+          if [ -n "$APKSIGNER" ]; then
+            echo "Verifying APK signature with apksigner..."
+            if "$APKSIGNER" verify --verbose "$APK_PATH"; then
+              echo "✅ APK is properly signed and can be installed on devices"
+            else
+              echo "❌ APK signature verification failed"
+              exit 1
+            fi
+          else
+            echo "⚠️ apksigner not found, checking for signature files in APK..."
+            if unzip -l "$APK_PATH" | grep -q "META-INF/.*\.\(RSA\|DSA\|EC\|SF\)"; then
+              echo "✅ APK contains signature files"
+            else
+              echo "❌ APK appears to be unsigned"
+              exit 1
+            fi
+          fi
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
@@ -60,13 +103,15 @@ jobs:
 
             const body = `## 🚀 Build Successful!
 
-            The release APK has been built successfully.
+            The release APK has been built and **signed** successfully.
 
             ### 📥 Download APK
 
             [Download the release APK](${artifactUrl})
 
             **Artifact name:** \`release-apk\`
+
+            ✅ **This APK is signed and ready to install on Android devices.**
 
             > ⚠️ Note: Artifacts are available for 90 days. You need to be logged into GitHub to download.
 
