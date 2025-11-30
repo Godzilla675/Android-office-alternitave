@@ -185,6 +185,14 @@ class HomeFragment : Fragment() {
     }
 
     private fun openDocument(file: DocumentFile) {
+        // Check if the URI is accessible before navigating
+        if (!FileUtils.isUriAccessible(requireContext(), file.uri)) {
+            Toast.makeText(context, "File is no longer accessible", Toast.LENGTH_SHORT).show()
+            // Remove from recent files since it's inaccessible
+            // The user will need to re-open it from the file picker
+            return
+        }
+        
         // Save to recent files
         preferencesRepository.addRecentFile(
             uri = file.uri.toString(),
@@ -203,13 +211,22 @@ class HomeFragment : Fragment() {
             try {
                 val uri = Uri.parse(item.uri)
                 val docType = DocumentType.values().find { it.name == item.type } ?: DocumentType.UNKNOWN
-                DocumentFile(
-                    uri = uri,
-                    name = item.name,
-                    type = docType,
-                    size = item.size,
-                    lastModified = item.accessedAt
-                )
+                
+                // Check if file is still accessible
+                val isAccessible = FileUtils.isUriAccessible(requireContext(), uri)
+                
+                if (isAccessible) {
+                    DocumentFile(
+                        uri = uri,
+                        name = item.name,
+                        type = docType,
+                        size = item.size,
+                        lastModified = item.accessedAt
+                    )
+                } else {
+                    // File is no longer accessible, skip it
+                    null
+                }
             } catch (e: Exception) {
                 null
             }
