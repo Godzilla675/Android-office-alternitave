@@ -9,6 +9,12 @@
         app:showAsAction="ifRoom" />
 
     <item
+        android:id="@+id/action_reading_mode"
+        android:icon="@drawable/ic_visibility"
+        android:title="@string/reading_mode"
+        app:showAsAction="ifRoom" />
+
+    <item
         android:id="@+id/action_pip"
         android:icon="@drawable/ic_pip"
         android:title="@string/pip_mode"
