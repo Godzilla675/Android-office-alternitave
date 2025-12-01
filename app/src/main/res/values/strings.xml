@@ -869,5 +869,4 @@
     <string name="current">Current</string>
     <string name="download">Download</string>
     <string name="loading_releases">Loading releases...</string>
-    <string name="limit_format">Daily limit: %1$s</string>
 </resources>

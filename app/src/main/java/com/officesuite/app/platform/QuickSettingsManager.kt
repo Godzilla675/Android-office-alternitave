@@ -84,6 +84,7 @@ class ScannerTileService : TileService() {
             val label = context.getString(R.string.scan_document)
             
             // Request adding tile using StatusBarManager (API 33+)
+            // Note: mainExecutor is guaranteed to be available since API 28, and this function requires API 33+
             statusBarManager.requestAddTileService(
                 componentName,
                 label,
