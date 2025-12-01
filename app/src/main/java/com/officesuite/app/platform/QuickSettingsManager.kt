@@ -1,5 +1,6 @@
 package com.officesuite.app.platform
 
+import android.app.StatusBarManager
 import android.content.ComponentName
 import android.content.Context
 import android.graphics.drawable.Icon
@@ -12,6 +13,7 @@ import androidx.annotation.RequiresApi
 import com.officesuite.app.MainActivity
 import com.officesuite.app.R
 import com.officesuite.app.widget.QuickActionsWidget
+import java.util.concurrent.Executor
 
 /**
  * Quick Settings Tile Service for quick scanner access.
@@ -72,11 +74,26 @@ class ScannerTileService : TileService() {
         /**
          * Request to add the tile to quick settings
          */
-        @Suppress("UNUSED_VARIABLE")
         @RequiresApi(Build.VERSION_CODES.TIRAMISU)
         fun requestAddTile(context: Context) {
-            val statusBarManager = context.getSystemService(Context.STATUS_BAR_SERVICE)
+            val statusBarManager = context.getSystemService(Context.STATUS_BAR_SERVICE) as? StatusBarManager
+                ?: return
+            
+            val componentName = ComponentName(context, ScannerTileService::class.java)
+            val icon = Icon.createWithResource(context, R.drawable.ic_scan)
+            val label = context.getString(R.string.scan_document)
+            
             // Request adding tile using StatusBarManager (API 33+)
+            statusBarManager.requestAddTileService(
+                componentName,
+                label,
+                icon,
+                context.mainExecutor
+            ) { result ->
+                // Handle result - save preference if tile was added
+                val prefs = context.getSharedPreferences("quick_settings_prefs", Context.MODE_PRIVATE)
+                prefs.edit().putBoolean("scanner_tile_added", result == StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ADDED).apply()
+            }
         }
     }
 }

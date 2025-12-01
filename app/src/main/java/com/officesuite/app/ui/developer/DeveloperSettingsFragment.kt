@@ -184,10 +184,7 @@ class DeveloperSettingsFragment : Fragment() {
         updateAnalyticsSummary()
 
         binding.btnExportAnalytics.setOnClickListener {
-            @Suppress("UNUSED_VARIABLE")
-            val exportedJson = analyticsManager.exportAnalytics()
-            // In a real app, you would save this to a file
-            Toast.makeText(context, R.string.analytics_exported, Toast.LENGTH_SHORT).show()
+            exportAnalytics()
         }
 
         binding.btnClearAnalytics.setOnClickListener {
@@ -201,6 +198,30 @@ class DeveloperSettingsFragment : Fragment() {
                 }
                 .setNegativeButton(R.string.cancel, null)
                 .show()
+        }
+    }
+    
+    private fun exportAnalytics() {
+        try {
+            val exportedJson = analyticsManager.exportAnalytics()
+            val analyticsFile = java.io.File(requireContext().cacheDir, "analytics_export.json")
+            analyticsFile.writeText(exportedJson)
+            
+            val uri = FileProvider.getUriForFile(
+                requireContext(),
+                "${requireContext().packageName}.fileprovider",
+                analyticsFile
+            )
+
+            val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                type = "application/json"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+
+            startActivity(Intent.createChooser(shareIntent, getString(R.string.analytics_exported)))
+        } catch (e: Exception) {
+            Toast.makeText(context, "Failed to export analytics: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
