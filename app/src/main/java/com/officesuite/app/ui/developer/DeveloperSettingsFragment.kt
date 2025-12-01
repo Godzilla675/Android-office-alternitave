@@ -23,6 +23,7 @@ import com.officesuite.app.search.DocumentIndexingService
 import com.officesuite.app.utils.MemoryManager
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import java.io.File
 
 /**
  * Developer Settings Fragment.
@@ -204,7 +205,7 @@ class DeveloperSettingsFragment : Fragment() {
     private fun exportAnalytics() {
         try {
             val exportedJson = analyticsManager.exportAnalytics()
-            val analyticsFile = java.io.File(requireContext().cacheDir, "analytics_export.json")
+            val analyticsFile = File(requireContext().cacheDir, "analytics_export.json")
             analyticsFile.writeText(exportedJson)
             
             val uri = FileProvider.getUriForFile(
@@ -221,7 +222,8 @@ class DeveloperSettingsFragment : Fragment() {
 
             startActivity(Intent.createChooser(shareIntent, getString(R.string.export_analytics)))
         } catch (e: Exception) {
-            Toast.makeText(context, "Failed to export analytics: ${e.message}", Toast.LENGTH_SHORT).show()
+            android.util.Log.e("DeveloperSettings", "Failed to export analytics", e)
+            Toast.makeText(context, R.string.export_failed, Toast.LENGTH_SHORT).show()
         }
     }
 

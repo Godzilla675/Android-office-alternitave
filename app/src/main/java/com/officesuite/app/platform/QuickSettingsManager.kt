@@ -13,7 +13,6 @@ import androidx.annotation.RequiresApi
 import com.officesuite.app.MainActivity
 import com.officesuite.app.R
 import com.officesuite.app.widget.QuickActionsWidget
-import java.util.concurrent.Executor
 
 /**
  * Quick Settings Tile Service for quick scanner access.

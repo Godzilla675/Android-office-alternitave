@@ -869,4 +869,5 @@
     <string name="current">Current</string>
     <string name="download">Download</string>
     <string name="loading_releases">Loading releases...</string>
+    <string name="export_failed">Export failed. Please try again.</string>
 </resources>
