@@ -67,8 +67,7 @@ class LazyFontManagerTest {
     fun `FontLoadState Error contains message`() {
         val state = FontLoadState.Error("Font not found")
         
-        assertTrue(state is FontLoadState.Error)
-        assertEquals("Font not found", (state as FontLoadState.Error).message)
+        assertEquals("Font not found", state.message)
     }
 
     @Test

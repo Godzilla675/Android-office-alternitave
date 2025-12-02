@@ -60,24 +60,21 @@ class DocumentIndexingServiceTest {
     fun `IndexingState Indexing contains document name`() {
         val state = IndexingState.Indexing("report.docx")
         
-        assertTrue(state is IndexingState.Indexing)
-        assertEquals("report.docx", (state as IndexingState.Indexing).documentName)
+        assertEquals("report.docx", state.documentName)
     }
 
     @Test
     fun `IndexingState Complete contains document name`() {
         val state = IndexingState.Complete("report.docx")
         
-        assertTrue(state is IndexingState.Complete)
-        assertEquals("report.docx", (state as IndexingState.Complete).documentName)
+        assertEquals("report.docx", state.documentName)
     }
 
     @Test
     fun `IndexingState Error contains message`() {
         val state = IndexingState.Error("Failed to index")
         
-        assertTrue(state is IndexingState.Error)
-        assertEquals("Failed to index", (state as IndexingState.Error).message)
+        assertEquals("Failed to index", state.message)
     }
 
     @Test

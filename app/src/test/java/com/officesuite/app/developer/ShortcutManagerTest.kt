@@ -132,7 +132,6 @@ class ShortcutManagerTest {
     fun `ShortcutUpdateResult Conflict contains name`() {
         val result = ShortcutUpdateResult.Conflict("Save")
         
-        assertTrue(result is ShortcutUpdateResult.Conflict)
         assertEquals("Save", result.conflictingName)
     }
 
@@ -140,7 +139,6 @@ class ShortcutManagerTest {
     fun `ImportResult Success contains counts`() {
         val result = ImportResult.Success(imported = 5, skipped = 2)
         
-        assertTrue(result is ImportResult.Success)
         assertEquals(5, result.imported)
         assertEquals(2, result.skipped)
     }
@@ -149,7 +147,6 @@ class ShortcutManagerTest {
     fun `ImportResult Error contains message`() {
         val result = ImportResult.Error("Invalid format")
         
-        assertTrue(result is ImportResult.Error)
         assertEquals("Invalid format", result.message)
     }
 }

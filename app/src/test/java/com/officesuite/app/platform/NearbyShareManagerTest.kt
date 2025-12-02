@@ -34,17 +34,9 @@ class NearbyShareManagerTest {
     
     @Test
     fun `ShareResult sealed class has correct subclasses`() {
-        val success = NearbyShareManager.ShareResult.Success
         val error = NearbyShareManager.ShareResult.Error("Test error")
-        val cancelled = NearbyShareManager.ShareResult.Cancelled
-        val unavailable = NearbyShareManager.ShareResult.NearbyShareUnavailable
         
-        assertTrue(success is NearbyShareManager.ShareResult)
-        assertTrue(error is NearbyShareManager.ShareResult)
-        assertTrue(cancelled is NearbyShareManager.ShareResult)
-        assertTrue(unavailable is NearbyShareManager.ShareResult)
-        
-        assertEquals("Test error", (error as NearbyShareManager.ShareResult.Error).message)
+        assertEquals("Test error", error.message)
     }
     
     @Test

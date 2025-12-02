@@ -227,6 +227,7 @@ class ScannerFragment : Fragment() {
                 .build()
 
             // Create image analyzer for live border detection
+            @Suppress("DEPRECATION")
             imageAnalyzer = ImageAnalysis.Builder()
                 .setTargetResolution(android.util.Size(640, 480))
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
