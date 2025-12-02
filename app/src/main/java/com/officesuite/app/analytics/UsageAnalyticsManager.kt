@@ -92,6 +92,7 @@ class UsageAnalyticsManager private constructor(context: Context) {
         
         incrementDailyStat("documents_viewed")
         incrementDailyStat("documents_viewed_$documentType")
+        incrementDailyStat("document_source_$source")
         incrementFeatureUsage("document_view")
         
         currentSession?.let { session ->
@@ -131,6 +132,7 @@ class UsageAnalyticsManager private constructor(context: Context) {
         
         incrementDailyStat("documents_created")
         incrementDailyStat("documents_created_$documentType")
+        incrementDailyStat("creation_source_$source")
         incrementFeatureUsage("document_create")
         
         saveAnalytics()

@@ -23,6 +23,7 @@ import com.officesuite.app.search.DocumentIndexingService
 import com.officesuite.app.utils.MemoryManager
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import java.io.File
 
 /**
  * Developer Settings Fragment.
@@ -184,10 +185,7 @@ class DeveloperSettingsFragment : Fragment() {
         updateAnalyticsSummary()
 
         binding.btnExportAnalytics.setOnClickListener {
-            @Suppress("UNUSED_VARIABLE")
-            val exportedJson = analyticsManager.exportAnalytics()
-            // In a real app, you would save this to a file
-            Toast.makeText(context, R.string.analytics_exported, Toast.LENGTH_SHORT).show()
+            exportAnalytics()
         }
 
         binding.btnClearAnalytics.setOnClickListener {
@@ -201,6 +199,31 @@ class DeveloperSettingsFragment : Fragment() {
                 }
                 .setNegativeButton(R.string.cancel, null)
                 .show()
+        }
+    }
+    
+    private fun exportAnalytics() {
+        try {
+            val exportedJson = analyticsManager.exportAnalytics()
+            val analyticsFile = File(requireContext().cacheDir, "analytics_export.json")
+            analyticsFile.writeText(exportedJson)
+            
+            val uri = FileProvider.getUriForFile(
+                requireContext(),
+                "${requireContext().packageName}.fileprovider",
+                analyticsFile
+            )
+
+            val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                type = "application/json"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+
+            startActivity(Intent.createChooser(shareIntent, getString(R.string.export_analytics)))
+        } catch (e: Exception) {
+            android.util.Log.e("DeveloperSettings", "Failed to export analytics", e)
+            Toast.makeText(context, R.string.export_failed, Toast.LENGTH_SHORT).show()
         }
     }
 

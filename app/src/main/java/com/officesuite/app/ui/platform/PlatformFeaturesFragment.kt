@@ -123,8 +123,6 @@ class PlatformFeaturesFragment : Fragment() {
     private fun updateUsageDisplay() {
         val todayUsage = digitalWellbeing.getTodayUsage()
         val weeklyUsage = digitalWellbeing.getWeeklyUsage()
-        @Suppress("UNUSED_VARIABLE")
-        val dailyLimit = digitalWellbeing.getDailyLimit()
         
         binding.textTodayUsage.text = digitalWellbeing.formatTime(todayUsage)
         binding.textWeeklyUsage.text = digitalWellbeing.formatTime(weeklyUsage)
@@ -133,6 +131,7 @@ class PlatformFeaturesFragment : Fragment() {
         if (digitalWellbeing.isLimitEnabled()) {
             val percentage = digitalWellbeing.getUsagePercentage()
             binding.progressDailyUsage.progress = percentage.toInt()
+            binding.progressDailyUsage.max = 100
             binding.textRemainingTime.text = getString(
                 R.string.remaining_time, 
                 digitalWellbeing.formatTime(digitalWellbeing.getRemainingTime())

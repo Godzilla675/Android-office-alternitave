@@ -128,11 +128,11 @@ class FormattingToolbar @JvmOverloads constructor(
         toolbarLayout.addView(createSeparator())
 
         // List buttons
-        btnBulletList = createToolButton(R.drawable.ic_edit) { // Using edit as placeholder
+        btnBulletList = createToolButton(R.drawable.ic_bullet_list) {
             onBulletListClickListener?.invoke()
         }
         
-        btnNumberedList = createToolButton(R.drawable.ic_document) { // Using document as placeholder
+        btnNumberedList = createToolButton(R.drawable.ic_numbered_list) {
             onNumberedListClickListener?.invoke()
         }
 
