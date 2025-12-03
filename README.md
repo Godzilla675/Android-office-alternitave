@@ -2,6 +2,12 @@
 
 A lightweight, feature-rich office suite for Android that provides comprehensive document viewing, editing, scanning, and conversion capabilities.
 
+## 📥 Download
+
+**[Download the latest APK from Releases](https://github.com/Godzilla675/Android-office-alternitave/releases/latest)**
+
+Get the latest version of Office Suite directly from our [Releases page](https://github.com/Godzilla675/Android-office-alternitave/releases). Simply download the APK file and install it on your Android device (Android 8.0 or higher).
+
 ## Features
 
 ### 📄 Document Viewing
