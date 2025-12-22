@@ -432,9 +432,9 @@ class AnnotationView @JvmOverloads constructor(
      * Add an image annotation centered in the current view.
      * Bounds are stored normalized so they adapt to different canvas sizes.
      */
-    fun addImageAnnotation(bitmap: Bitmap) {
+    fun addImageAnnotation(bitmap: Bitmap?) {
         if (width == 0 || height == 0) return
-        if (bitmap.width <= 0 || bitmap.height <= 0) return
+        if (bitmap == null || bitmap.width <= 0 || bitmap.height <= 0) return
 
         val maxWidth = width * IMAGE_MAX_RATIO
         val maxHeight = height * IMAGE_MAX_RATIO

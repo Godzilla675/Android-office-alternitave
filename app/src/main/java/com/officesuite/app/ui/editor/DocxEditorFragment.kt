@@ -282,6 +282,9 @@ class DocxEditorFragment : Fragment() {
 
             val editor = binding.richTextEditor
             val scaledBitmap = scaleBitmapForEditor(bitmap)
+            if (scaledBitmap !== bitmap) {
+                bitmap.recycle()
+            }
 
             val imageSpan = ImageSpan(requireContext(), scaledBitmap, ImageSpan.ALIGN_BASELINE)
             val spannable = SpannableString(" ")
