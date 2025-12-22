@@ -291,7 +291,7 @@ class DocxEditorFragment : Fragment() {
             val insertionPoint = editor.selectionStart.coerceAtLeast(0)
             editable.insert(insertionPoint, spannable)
             val nextIndex = insertionPoint + spannable.length
-            val shouldAddNewline = nextIndex == editable.length || editable.getOrNull(nextIndex) != '\n'
+            val shouldAddNewline = nextIndex >= editable.length || editable[nextIndex] != '\n'
             if (shouldAddNewline) {
                 editable.insert(nextIndex, "\n")
                 editor.setSelection((nextIndex + 1).coerceAtMost(editable.length))

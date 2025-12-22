@@ -472,10 +472,6 @@ class AnnotationView @JvmOverloads constructor(
         )
     }
 
-    private companion object {
-        const val IMAGE_MAX_RATIO = 0.7f
-    }
-
     /**
      * Export annotations to a bitmap that can be overlaid on the document
      */
@@ -506,5 +502,9 @@ class AnnotationView @JvmOverloads constructor(
         }
         
         return bitmap
+    }
+
+    private companion object {
+        const val IMAGE_MAX_RATIO = 0.7f
     }
 }
