@@ -11,3 +11,4 @@
 ## Notes
 - Tests executed in headless CI environment; no manual device/emulator verification performed.
 - Instrumentation/UI flows were not exercised. Build with Android Studio on a device or emulator for end-to-end validation.
+- To run instrumentation/UI tests locally, attach a device or emulator and execute `./gradlew connectedAndroidTest`.
