@@ -1,11 +1,15 @@
 package com.officesuite.app.ui.editor
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.Typeface
 import android.net.Uri
 import android.os.Bundle
+import android.text.SpannableString
 import android.text.SpannableStringBuilder
 import android.text.Spanned
+import android.text.style.ImageSpan
 import android.text.style.StyleSpan
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -263,11 +267,48 @@ class DocxEditorFragment : Fragment() {
             .show()
     }
 
-    @Suppress("UNUSED_PARAMETER")
     private fun handleImageSelected(uri: Uri) {
-        // uri parameter will be used when full image embedding is implemented
-        Toast.makeText(context, "Image selected - inserting into document", Toast.LENGTH_SHORT).show()
-        // In a full implementation, this would embed the image in the document
+        try {
+            val resolver = requireContext().contentResolver
+            val bitmap = resolver.openInputStream(uri)?.use { input ->
+                BitmapFactory.decodeStream(input)
+            }
+
+            if (bitmap == null) {
+                Toast.makeText(context, "Unable to load image", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            val editor = binding.richTextEditor
+            val availableWidth = (editor.width.takeIf { it > 0 } ?: resources.displayMetrics.widthPixels) -
+                editor.paddingStart - editor.paddingEnd
+            val maxWidth = availableWidth * 0.8f
+            val maxHeight = (editor.height.takeIf { it > 0 } ?: resources.displayMetrics.heightPixels) * 0.5f
+            val scale = minOf(maxWidth / bitmap.width, maxHeight / bitmap.height, 1f)
+
+            val scaledBitmap = if (scale < 1f) {
+                Bitmap.createScaledBitmap(
+                    bitmap,
+                    (bitmap.width * scale).toInt().coerceAtLeast(1),
+                    (bitmap.height * scale).toInt().coerceAtLeast(1),
+                    true
+                )
+            } else {
+                bitmap
+            }
+
+            val imageSpan = ImageSpan(requireContext(), scaledBitmap, ImageSpan.ALIGN_BASELINE)
+            val spannable = SpannableString(" ")
+            spannable.setSpan(imageSpan, 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+
+            val editable = editor.editableText
+            val insertionPoint = editor.selectionStart.coerceAtLeast(0)
+            editable.insert(insertionPoint, spannable)
+            editable.insert(insertionPoint + spannable.length, "\n")
+            editor.setSelection((insertionPoint + spannable.length + 1).coerceAtMost(editable.length))
+        } catch (e: Exception) {
+            Toast.makeText(context, "Failed to insert image: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun updateUndoRedoButtons() {
