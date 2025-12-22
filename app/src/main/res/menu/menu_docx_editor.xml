@@ -20,6 +20,11 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/action_statistics"
+        android:title="@string/document_statistics"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_share"
         android:icon="@drawable/ic_share"
         android:title="@string/share"
