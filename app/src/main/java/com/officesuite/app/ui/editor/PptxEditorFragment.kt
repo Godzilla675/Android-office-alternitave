@@ -249,32 +249,11 @@ class PptxEditorFragment : Fragment() {
                 return
             }
 
-            val scaled = scaleBitmapForCanvas(bitmap)
-            binding.annotationView.addImageAnnotation(scaled)
+            binding.annotationView.addImageAnnotation(bitmap)
             selectTool(AnnotationView.Tool.NONE)
             updateUndoRedoButtons()
         } catch (e: Exception) {
             Toast.makeText(context, "Failed to insert image: ${e.message}", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun scaleBitmapForCanvas(bitmap: Bitmap): Bitmap {
-        val viewWidth = binding.annotationView.width.takeIf { it > 0 } ?: bitmap.width
-        val viewHeight = binding.annotationView.height.takeIf { it > 0 } ?: bitmap.height
-
-        val maxWidth = viewWidth * 0.7f
-        val maxHeight = viewHeight * 0.7f
-        val scale = minOf(maxWidth / bitmap.width, maxHeight / bitmap.height, 1f)
-
-        return if (scale >= 1f) {
-            bitmap
-        } else {
-            Bitmap.createScaledBitmap(
-                bitmap,
-                (bitmap.width * scale).toInt().coerceAtLeast(1),
-                (bitmap.height * scale).toInt().coerceAtLeast(1),
-                true
-            )
         }
     }
 

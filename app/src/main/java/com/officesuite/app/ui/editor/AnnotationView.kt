@@ -435,8 +435,8 @@ class AnnotationView @JvmOverloads constructor(
     fun addImageAnnotation(bitmap: Bitmap) {
         if (width == 0 || height == 0) return
 
-        val maxWidth = width * 0.7f
-        val maxHeight = height * 0.7f
+        val maxWidth = width * IMAGE_MAX_RATIO
+        val maxHeight = height * IMAGE_MAX_RATIO
         val scale = minOf(maxWidth / bitmap.width, maxHeight / bitmap.height, 1f)
         val targetWidth = bitmap.width * scale
         val targetHeight = bitmap.height * scale
@@ -470,6 +470,10 @@ class AnnotationView @JvmOverloads constructor(
             rect.right * width,
             rect.bottom * height
         )
+    }
+
+    private companion object {
+        const val IMAGE_MAX_RATIO = 0.7f
     }
 
     /**

@@ -29,6 +29,7 @@ import com.officesuite.app.utils.FileUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.math.roundToInt
 import org.apache.poi.xwpf.usermodel.XWPFDocument
 import org.apache.poi.xwpf.usermodel.XWPFParagraph
 import org.apache.poi.xwpf.usermodel.XWPFRun
@@ -280,22 +281,7 @@ class DocxEditorFragment : Fragment() {
             }
 
             val editor = binding.richTextEditor
-            val availableWidth = (editor.width.takeIf { it > 0 } ?: resources.displayMetrics.widthPixels) -
-                editor.paddingStart - editor.paddingEnd
-            val maxWidth = availableWidth * 0.8f
-            val maxHeight = (editor.height.takeIf { it > 0 } ?: resources.displayMetrics.heightPixels) * 0.5f
-            val scale = minOf(maxWidth / bitmap.width, maxHeight / bitmap.height, 1f)
-
-            val scaledBitmap = if (scale < 1f) {
-                Bitmap.createScaledBitmap(
-                    bitmap,
-                    (bitmap.width * scale).toInt().coerceAtLeast(1),
-                    (bitmap.height * scale).toInt().coerceAtLeast(1),
-                    true
-                )
-            } else {
-                bitmap
-            }
+            val scaledBitmap = scaleBitmapForEditor(bitmap)
 
             val imageSpan = ImageSpan(requireContext(), scaledBitmap, ImageSpan.ALIGN_BASELINE)
             val spannable = SpannableString(" ")
@@ -309,6 +295,33 @@ class DocxEditorFragment : Fragment() {
         } catch (e: Exception) {
             Toast.makeText(context, "Failed to insert image: ${e.message}", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun scaleBitmapForEditor(bitmap: Bitmap): Bitmap {
+        val editor = binding.richTextEditor
+        val availableWidth = (editor.width.takeIf { it > 0 } ?: resources.displayMetrics.widthPixels) -
+            editor.paddingStart - editor.paddingEnd
+        val maxWidth = availableWidth * MAX_IMAGE_WIDTH_RATIO
+        val maxHeight = (editor.height.takeIf { it > 0 } ?: resources.displayMetrics.heightPixels) * MAX_IMAGE_HEIGHT_RATIO
+        val scale = minOf(maxWidth / bitmap.width, maxHeight / bitmap.height, 1f)
+            .coerceAtLeast(MIN_IMAGE_SCALE)
+
+        return if (scale < 1f) {
+            Bitmap.createScaledBitmap(
+                bitmap,
+                (bitmap.width * scale).roundToInt().coerceAtLeast(1),
+                (bitmap.height * scale).roundToInt().coerceAtLeast(1),
+                true
+            )
+        } else {
+            bitmap
+        }
+    }
+
+    companion object {
+        private const val MAX_IMAGE_WIDTH_RATIO = 0.8f
+        private const val MAX_IMAGE_HEIGHT_RATIO = 0.5f
+        private const val MIN_IMAGE_SCALE = 0.1f
     }
 
     private fun updateUndoRedoButtons() {
