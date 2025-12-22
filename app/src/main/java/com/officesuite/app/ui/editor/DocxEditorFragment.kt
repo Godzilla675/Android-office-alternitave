@@ -290,8 +290,14 @@ class DocxEditorFragment : Fragment() {
             val editable = editor.editableText
             val insertionPoint = editor.selectionStart.coerceAtLeast(0)
             editable.insert(insertionPoint, spannable)
-            editable.insert(insertionPoint + spannable.length, "\n")
-            editor.setSelection((insertionPoint + spannable.length + 1).coerceAtMost(editable.length))
+            val nextIndex = insertionPoint + spannable.length
+            val shouldAddNewline = nextIndex == editable.length || editable.getOrNull(nextIndex) != '\n'
+            if (shouldAddNewline) {
+                editable.insert(nextIndex, "\n")
+                editor.setSelection((nextIndex + 1).coerceAtMost(editable.length))
+            } else {
+                editor.setSelection(nextIndex.coerceAtMost(editable.length))
+            }
         } catch (e: Exception) {
             Toast.makeText(context, "Failed to insert image: ${e.message}", Toast.LENGTH_SHORT).show()
         }
@@ -299,10 +305,19 @@ class DocxEditorFragment : Fragment() {
 
     private fun scaleBitmapForEditor(bitmap: Bitmap): Bitmap {
         val editor = binding.richTextEditor
-        val availableWidth = (editor.width.takeIf { it > 0 } ?: resources.displayMetrics.widthPixels) -
-            editor.paddingStart - editor.paddingEnd
-        val maxWidth = availableWidth * MAX_IMAGE_WIDTH_RATIO
-        val maxHeight = (editor.height.takeIf { it > 0 } ?: resources.displayMetrics.heightPixels) * MAX_IMAGE_HEIGHT_RATIO
+        val contentWidth = if (editor.width > 0) {
+            editor.width - editor.paddingStart - editor.paddingEnd
+        } else {
+            resources.displayMetrics.widthPixels - editor.paddingStart - editor.paddingEnd
+        }
+        val contentHeight = if (editor.height > 0) {
+            editor.height - editor.paddingTop - editor.paddingBottom
+        } else {
+            resources.displayMetrics.heightPixels - editor.paddingTop - editor.paddingBottom
+        }
+
+        val maxWidth = contentWidth * MAX_IMAGE_WIDTH_RATIO
+        val maxHeight = contentHeight * MAX_IMAGE_HEIGHT_RATIO
         val scale = minOf(maxWidth / bitmap.width, maxHeight / bitmap.height, 1f)
             .coerceAtLeast(MIN_IMAGE_SCALE)
 
@@ -316,12 +331,6 @@ class DocxEditorFragment : Fragment() {
         } else {
             bitmap
         }
-    }
-
-    companion object {
-        private const val MAX_IMAGE_WIDTH_RATIO = 0.8f
-        private const val MAX_IMAGE_HEIGHT_RATIO = 0.5f
-        private const val MIN_IMAGE_SCALE = 0.1f
     }
 
     private fun updateUndoRedoButtons() {
@@ -508,5 +517,11 @@ class DocxEditorFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    companion object {
+        private const val MAX_IMAGE_WIDTH_RATIO = 0.8f
+        private const val MAX_IMAGE_HEIGHT_RATIO = 0.5f
+        private const val MIN_IMAGE_SCALE = 0.1f
     }
 }

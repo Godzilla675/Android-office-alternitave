@@ -452,7 +452,7 @@ class AnnotationView @JvmOverloads constructor(
 
         annotations.add(
             Annotation(
-                paint = Paint(),
+                paint = Paint(Paint.ANTI_ALIAS_FLAG),
                 shapeType = Tool.NONE,
                 image = bitmap,
                 imageBounds = normalizedBounds
