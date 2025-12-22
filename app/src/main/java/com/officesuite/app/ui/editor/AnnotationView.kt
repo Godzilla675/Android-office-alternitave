@@ -434,6 +434,7 @@ class AnnotationView @JvmOverloads constructor(
      */
     fun addImageAnnotation(bitmap: Bitmap) {
         if (width == 0 || height == 0) return
+        if (bitmap.width <= 0 || bitmap.height <= 0) return
 
         val maxWidth = width * IMAGE_MAX_RATIO
         val maxHeight = height * IMAGE_MAX_RATIO

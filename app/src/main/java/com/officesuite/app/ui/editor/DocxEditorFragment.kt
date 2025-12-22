@@ -304,16 +304,18 @@ class DocxEditorFragment : Fragment() {
     }
 
     private fun scaleBitmapForEditor(bitmap: Bitmap): Bitmap {
+        if (bitmap.width <= 0 || bitmap.height <= 0) return bitmap
+
         val editor = binding.richTextEditor
         val contentWidth = if (editor.width > 0) {
-            editor.width - editor.paddingStart - editor.paddingEnd
+            (editor.width - editor.paddingStart - editor.paddingEnd).coerceAtLeast(1)
         } else {
-            resources.displayMetrics.widthPixels - editor.paddingStart - editor.paddingEnd
+            resources.displayMetrics.widthPixels
         }
         val contentHeight = if (editor.height > 0) {
-            editor.height - editor.paddingTop - editor.paddingBottom
+            (editor.height - editor.paddingTop - editor.paddingBottom).coerceAtLeast(1)
         } else {
-            resources.displayMetrics.heightPixels - editor.paddingTop - editor.paddingBottom
+            resources.displayMetrics.heightPixels
         }
 
         val maxWidth = contentWidth * MAX_IMAGE_WIDTH_RATIO
