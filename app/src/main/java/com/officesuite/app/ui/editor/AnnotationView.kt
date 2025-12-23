@@ -30,7 +30,10 @@ class AnnotationView @JvmOverloads constructor(
         val text: String? = null,
         val textPosition: PointF? = null,
         val startPoint: PointF? = null,
-        val endPoint: PointF? = null
+        val endPoint: PointF? = null,
+        val image: Bitmap? = null,
+        /** Normalized bounds (0-1) relative to the view size */
+        val imageBounds: RectF? = null
     )
 
     private val annotations = mutableListOf<Annotation>()
@@ -186,6 +189,10 @@ class AnnotationView @JvmOverloads constructor(
         // Draw all completed annotations
         for (annotation in annotations) {
             when {
+                annotation.image != null && annotation.imageBounds != null -> {
+                    val bounds = denormalizeRect(annotation.imageBounds)
+                    canvas.drawBitmap(annotation.image, null, bounds, null)
+                }
                 annotation.path != null -> {
                     canvas.drawPath(annotation.path, annotation.paint)
                 }
@@ -393,6 +400,10 @@ class AnnotationView @JvmOverloads constructor(
         val eraserBounds = RectF(x - radius, y - radius, x + radius, y + radius)
         
         return when {
+            annotation.imageBounds != null -> {
+                val bounds = denormalizeRect(annotation.imageBounds)
+                RectF.intersects(eraserBounds, bounds)
+            }
             annotation.path != null -> {
                 val pathBounds = RectF()
                 annotation.path.computeBounds(pathBounds, true)
@@ -418,6 +429,51 @@ class AnnotationView @JvmOverloads constructor(
     }
 
     /**
+     * Add an image annotation centered in the current view.
+     * Bounds are stored normalized so they adapt to different canvas sizes.
+     */
+    fun addImageAnnotation(bitmap: Bitmap?) {
+        if (width == 0 || height == 0) return
+        if (bitmap == null || bitmap.width <= 0 || bitmap.height <= 0) return
+
+        val maxWidth = width * IMAGE_MAX_RATIO
+        val maxHeight = height * IMAGE_MAX_RATIO
+        val scale = minOf(maxWidth / bitmap.width, maxHeight / bitmap.height, 1f)
+        val targetWidth = bitmap.width * scale
+        val targetHeight = bitmap.height * scale
+
+        val left = (width - targetWidth) / 2f
+        val top = (height - targetHeight) / 2f
+        val normalizedBounds = RectF(
+            left / width,
+            top / height,
+            (left + targetWidth) / width,
+            (top + targetHeight) / height
+        )
+
+        annotations.add(
+            Annotation(
+                paint = Paint(Paint.ANTI_ALIAS_FLAG),
+                shapeType = Tool.NONE,
+                image = bitmap,
+                imageBounds = normalizedBounds
+            )
+        )
+        redoStack.clear()
+        invalidate()
+        onAnnotationChangeListener?.invoke()
+    }
+
+    private fun denormalizeRect(rect: RectF): RectF {
+        return RectF(
+            rect.left * width,
+            rect.top * height,
+            rect.right * width,
+            rect.bottom * height
+        )
+    }
+
+    /**
      * Export annotations to a bitmap that can be overlaid on the document
      */
     fun exportAnnotations(width: Int, height: Int): Bitmap {
@@ -426,6 +482,15 @@ class AnnotationView @JvmOverloads constructor(
         
         for (annotation in annotations) {
             when {
+                annotation.image != null && annotation.imageBounds != null -> {
+                    val bounds = RectF(
+                        annotation.imageBounds.left * width,
+                        annotation.imageBounds.top * height,
+                        annotation.imageBounds.right * width,
+                        annotation.imageBounds.bottom * height
+                    )
+                    canvas.drawBitmap(annotation.image, null, bounds, null)
+                }
                 annotation.path != null -> canvas.drawPath(annotation.path, annotation.paint)
                 annotation.text != null && annotation.textPosition != null -> {
                     canvas.drawText(annotation.text, annotation.textPosition.x, annotation.textPosition.y, annotation.paint)
@@ -438,5 +503,9 @@ class AnnotationView @JvmOverloads constructor(
         }
         
         return bitmap
+    }
+
+    private companion object {
+        const val IMAGE_MAX_RATIO = 0.7f
     }
 }

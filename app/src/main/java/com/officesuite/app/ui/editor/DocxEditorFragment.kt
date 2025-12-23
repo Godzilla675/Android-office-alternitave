@@ -1,11 +1,15 @@
 package com.officesuite.app.ui.editor
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.Typeface
 import android.net.Uri
 import android.os.Bundle
+import android.text.SpannableString
 import android.text.SpannableStringBuilder
 import android.text.Spanned
+import android.text.style.ImageSpan
 import android.text.style.StyleSpan
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -25,6 +29,7 @@ import com.officesuite.app.utils.FileUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.math.roundToInt
 import org.apache.poi.xwpf.usermodel.XWPFDocument
 import org.apache.poi.xwpf.usermodel.XWPFParagraph
 import org.apache.poi.xwpf.usermodel.XWPFRun
@@ -263,11 +268,74 @@ class DocxEditorFragment : Fragment() {
             .show()
     }
 
-    @Suppress("UNUSED_PARAMETER")
     private fun handleImageSelected(uri: Uri) {
-        // uri parameter will be used when full image embedding is implemented
-        Toast.makeText(context, "Image selected - inserting into document", Toast.LENGTH_SHORT).show()
-        // In a full implementation, this would embed the image in the document
+        try {
+            val resolver = requireContext().contentResolver
+            val bitmap = resolver.openInputStream(uri)?.use { input ->
+                BitmapFactory.decodeStream(input)
+            }
+
+            if (bitmap == null) {
+                Toast.makeText(context, "Unable to load image", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            val editor = binding.richTextEditor
+            val scaledBitmap = scaleBitmapForEditor(bitmap)
+            if (scaledBitmap !== bitmap) {
+                bitmap.recycle()
+            }
+
+            val imageSpan = ImageSpan(requireContext(), scaledBitmap, ImageSpan.ALIGN_BASELINE)
+            val spannable = SpannableString(" ")
+            spannable.setSpan(imageSpan, 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+
+            val editable = editor.editableText
+            val insertionPoint = editor.selectionStart.coerceAtLeast(0)
+            editable.insert(insertionPoint, spannable)
+            val nextIndex = insertionPoint + spannable.length
+            val shouldAddNewline = nextIndex >= editable.length || editable[nextIndex] != '\n'
+            if (shouldAddNewline) {
+                editable.insert(nextIndex, "\n")
+                editor.setSelection((nextIndex + 1).coerceAtMost(editable.length))
+            } else {
+                editor.setSelection(nextIndex.coerceAtMost(editable.length))
+            }
+        } catch (e: Exception) {
+            Toast.makeText(context, "Failed to insert image: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun scaleBitmapForEditor(bitmap: Bitmap): Bitmap {
+        if (bitmap.width <= 0 || bitmap.height <= 0) return bitmap
+
+        val editor = binding.richTextEditor
+        val contentWidth = if (editor.width > 0) {
+            (editor.width - editor.paddingStart - editor.paddingEnd).coerceAtLeast(1)
+        } else {
+            resources.displayMetrics.widthPixels
+        }
+        val contentHeight = if (editor.height > 0) {
+            (editor.height - editor.paddingTop - editor.paddingBottom).coerceAtLeast(1)
+        } else {
+            resources.displayMetrics.heightPixels
+        }
+
+        val maxWidth = contentWidth * MAX_IMAGE_WIDTH_RATIO
+        val maxHeight = contentHeight * MAX_IMAGE_HEIGHT_RATIO
+        val scale = minOf(maxWidth / bitmap.width, maxHeight / bitmap.height, 1f)
+            .coerceAtLeast(MIN_IMAGE_SCALE)
+
+        return if (scale < 1f) {
+            Bitmap.createScaledBitmap(
+                bitmap,
+                (bitmap.width * scale).roundToInt().coerceAtLeast(1),
+                (bitmap.height * scale).roundToInt().coerceAtLeast(1),
+                true
+            )
+        } else {
+            bitmap
+        }
     }
 
     private fun updateUndoRedoButtons() {
@@ -454,5 +522,11 @@ class DocxEditorFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    companion object {
+        private const val MAX_IMAGE_WIDTH_RATIO = 0.8f
+        private const val MAX_IMAGE_HEIGHT_RATIO = 0.5f
+        private const val MIN_IMAGE_SCALE = 0.1f
     }
 }
