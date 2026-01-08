@@ -401,6 +401,11 @@
     <string name="document_summary">Document Summary</string>
     <string name="smart_search">Smart Search</string>
     <string name="document_statistics">Document Statistics</string>
+    <string name="statistics_title">Statistics</string>
+    <string name="count_words">Words: %1$d</string>
+    <string name="count_chars">Characters: %1$d</string>
+    <string name="count_chars_no_spaces">Characters (no spaces): %1$d</string>
+    <string name="count_paragraphs">Paragraphs: %1$d</string>
     <string name="key_points">Key Points</string>
     <string name="action_items">Action Items</string>
     <string name="word_count">Word Count</string>

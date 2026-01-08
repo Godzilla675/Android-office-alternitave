@@ -21,6 +21,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.officesuite.app.R
 import com.officesuite.app.databinding.FragmentDocxEditorBinding
+import com.officesuite.app.utils.DocumentStatisticsHelper
 import com.officesuite.app.utils.FileUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -110,6 +111,10 @@ class DocxEditorFragment : Fragment() {
                     }
                     R.id.action_export_pdf -> {
                         exportToPdf()
+                        true
+                    }
+                    R.id.action_statistics -> {
+                        showDocumentStatistics()
                         true
                     }
                     else -> false
@@ -449,6 +454,24 @@ class DocxEditorFragment : Fragment() {
     private fun exportToPdf() {
         Toast.makeText(context, "Exporting to PDF...", Toast.LENGTH_SHORT).show()
         // In a full implementation, this would convert the document to PDF using iText
+    }
+
+    private fun showDocumentStatistics() {
+        val text = binding.richTextEditor.getPlainText()
+        val stats = DocumentStatisticsHelper.calculateStats(text)
+
+        val message = """
+            ${getString(R.string.count_words, stats.wordCount)}
+            ${getString(R.string.count_chars, stats.charCount)}
+            ${getString(R.string.count_chars_no_spaces, stats.charCountNoSpaces)}
+            ${getString(R.string.count_paragraphs, stats.paragraphCount)}
+        """.trimIndent()
+
+        AlertDialog.Builder(requireContext())
+            .setTitle(R.string.statistics_title)
+            .setMessage(message)
+            .setPositiveButton(android.R.string.ok, null)
+            .show()
     }
 
     override fun onDestroyView() {
