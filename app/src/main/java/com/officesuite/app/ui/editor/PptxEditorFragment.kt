@@ -1,6 +1,7 @@
 package com.officesuite.app.ui.editor
 
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.net.Uri
@@ -236,11 +237,24 @@ class PptxEditorFragment : Fragment() {
             .show(parentFragmentManager, "text_input")
     }
 
-    @Suppress("UNUSED_PARAMETER")
     private fun handleImageSelected(uri: Uri) {
-        // uri parameter will be used when full image insertion is implemented
-        Toast.makeText(context, "Image selected - inserting into slide", Toast.LENGTH_SHORT).show()
-        // In a full implementation, this would add the image to the annotation layer
+        try {
+            val resolver = requireContext().contentResolver
+            val bitmap = resolver.openInputStream(uri)?.use { input ->
+                BitmapFactory.decodeStream(input)
+            }
+
+            if (bitmap == null) {
+                Toast.makeText(context, "Unable to load image", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            binding.annotationView.addImageAnnotation(bitmap)
+            selectTool(AnnotationView.Tool.NONE)
+            updateUndoRedoButtons()
+        } catch (e: Exception) {
+            Toast.makeText(context, "Failed to insert image: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun setupAnnotationView() {
