@@ -6,12 +6,12 @@
     android:background="@android:color/black"
     tools:context=".ui.reader.PdfReadingModeActivity">
 
-    <!-- PDF Page Image -->
-    <ImageView
+    <!-- PDF Page Image with zoom support -->
+    <com.officesuite.app.ui.pdf.ZoomableImageView
         android:id="@+id/imagePage"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scaleType="fitCenter"
+        android:scaleType="matrix"
         android:contentDescription="@string/pdf_document" />
 
     <!-- Progress Bar -->
