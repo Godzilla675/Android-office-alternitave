@@ -422,6 +422,38 @@ class PdfEditorFragment : Fragment() {
                                     inkAnnotation.setOpacity(com.itextpdf.kernel.pdf.PdfNumber(0.4))
                                 }
                                 
+                                // Generate appearance stream so annotation is visible in all viewers
+                                val appearance = com.itextpdf.kernel.pdf.xobject.PdfFormXObject(pdfRect)
+                                val canvas = com.itextpdf.kernel.pdf.canvas.PdfCanvas(appearance, pdfDoc)
+                                canvas.saveState()
+                                canvas.setStrokeColor(com.itextpdf.kernel.colors.DeviceRgb(r, g, b))
+                                canvas.setLineWidth(annotation.paint.strokeWidth)
+                                if (annotation.shapeType == AnnotationView.Tool.HIGHLIGHTER) {
+                                    canvas.setExtGState(com.itextpdf.kernel.pdf.extgstate.PdfExtGState().setStrokeOpacity(0.4f))
+                                }
+                                // Replay the path points in the appearance stream
+                                val apCoords = FloatArray(2)
+                                val apMeasure = android.graphics.PathMeasure(annotation.path, false)
+                                val apLength = apMeasure.length
+                                val apNumPoints = minOf(100, (apLength / 5).toInt().coerceAtLeast(10))
+                                var apFirst = true
+                                for (j in 0..apNumPoints) {
+                                    val dist = (j.toFloat() / apNumPoints) * apLength
+                                    if (apMeasure.getPosTan(dist, apCoords, null)) {
+                                        val ax = (apCoords[0] - pdfRect.x).toDouble()
+                                        val ay = (pageHeight - apCoords[1] - pdfRect.y).toDouble()
+                                        if (apFirst) {
+                                            canvas.moveTo(ax, ay)
+                                            apFirst = false
+                                        } else {
+                                            canvas.lineTo(ax, ay)
+                                        }
+                                    }
+                                }
+                                if (!apFirst) canvas.stroke()
+                                canvas.restoreState()
+                                inkAnnotation.setNormalAppearance(appearance.pdfObject)
+                                
                                 page.addAnnotation(inkAnnotation)
                             }
                             // Handle text annotations
@@ -441,6 +473,21 @@ class PdfEditorFragment : Fragment() {
                                 val g = Color.green(annotation.paint.color)
                                 val b = Color.blue(annotation.paint.color)
                                 freeTextAnnotation.setColor(com.itextpdf.kernel.colors.DeviceRgb(r, g, b))
+                                
+                                // Generate appearance stream so annotation is visible in all viewers
+                                val appearance = com.itextpdf.kernel.pdf.xobject.PdfFormXObject(pdfRect)
+                                val canvas = com.itextpdf.kernel.pdf.canvas.PdfCanvas(appearance, pdfDoc)
+                                canvas.saveState()
+                                canvas.beginText()
+                                val font = com.itextpdf.kernel.font.PdfFontFactory.createFont()
+                                canvas.setFontAndSize(font, 12f)
+                                canvas.setFillColor(com.itextpdf.kernel.colors.DeviceRgb(r, g, b))
+                                canvas.moveText(2.0, (pdfRect.height - 12f).toDouble())
+                                canvas.showText(annotation.text)
+                                canvas.endText()
+                                canvas.restoreState()
+                                freeTextAnnotation.setNormalAppearance(appearance.pdfObject)
+                                
                                 page.addAnnotation(freeTextAnnotation)
                             }
                             // Handle shape annotations (rectangle, circle)
@@ -458,6 +505,31 @@ class PdfEditorFragment : Fragment() {
                                 val g = Color.green(annotation.paint.color)
                                 val b = Color.blue(annotation.paint.color)
                                 squareAnnotation.setColor(com.itextpdf.kernel.colors.DeviceRgb(r, g, b))
+                                
+                                // Generate appearance stream so annotation is visible in all viewers
+                                val appearance = com.itextpdf.kernel.pdf.xobject.PdfFormXObject(pdfRect)
+                                val canvas = com.itextpdf.kernel.pdf.canvas.PdfCanvas(appearance, pdfDoc)
+                                canvas.saveState()
+                                canvas.setStrokeColor(com.itextpdf.kernel.colors.DeviceRgb(r, g, b))
+                                canvas.setLineWidth(annotation.paint.strokeWidth)
+                                if (annotation.shapeType == AnnotationView.Tool.CIRCLE) {
+                                    // Draw ellipse inscribed in the rectangle
+                                    val cx = pdfRect.width / 2
+                                    val cy = pdfRect.height / 2
+                                    val rx = pdfRect.width / 2
+                                    val ry = pdfRect.height / 2
+                                    canvas.ellipse(
+                                        (cx - rx).toDouble(), (cy - ry).toDouble(),
+                                        (cx + rx).toDouble(), (cy + ry).toDouble()
+                                    )
+                                    canvas.stroke()
+                                } else {
+                                    canvas.rectangle(0.0, 0.0, pdfRect.width.toDouble(), pdfRect.height.toDouble())
+                                    canvas.stroke()
+                                }
+                                canvas.restoreState()
+                                squareAnnotation.setNormalAppearance(appearance.pdfObject)
+                                
                                 page.addAnnotation(squareAnnotation)
                             }
                             // Handle line/arrow annotations
@@ -494,6 +566,39 @@ class PdfEditorFragment : Fragment() {
                                     endingStyles.add(com.itextpdf.kernel.pdf.PdfName("OpenArrow"))
                                     lineAnnotation.put(com.itextpdf.kernel.pdf.PdfName.LE, endingStyles)
                                 }
+                                
+                                // Generate appearance stream so annotation is visible in all viewers
+                                val appearance = com.itextpdf.kernel.pdf.xobject.PdfFormXObject(pdfRect)
+                                val canvas = com.itextpdf.kernel.pdf.canvas.PdfCanvas(appearance, pdfDoc)
+                                canvas.saveState()
+                                canvas.setStrokeColor(com.itextpdf.kernel.colors.DeviceRgb(r, g, b))
+                                canvas.setLineWidth(annotation.paint.strokeWidth)
+                                val lx1 = (annotation.startPoint.x - pdfRect.x).toDouble()
+                                val ly1 = (pageHeight - annotation.startPoint.y - pdfRect.y).toDouble()
+                                val lx2 = (annotation.endPoint.x - pdfRect.x).toDouble()
+                                val ly2 = (pageHeight - annotation.endPoint.y - pdfRect.y).toDouble()
+                                canvas.moveTo(lx1, ly1)
+                                canvas.lineTo(lx2, ly2)
+                                canvas.stroke()
+                                if (annotation.shapeType == AnnotationView.Tool.ARROW) {
+                                    // Draw arrowhead
+                                    val angle = Math.atan2(ly2 - ly1, lx2 - lx1)
+                                    val arrowLen = annotation.paint.strokeWidth * 4.0
+                                    val arrowAngle = Math.toRadians(30.0)
+                                    canvas.moveTo(lx2, ly2)
+                                    canvas.lineTo(
+                                        lx2 - arrowLen * Math.cos(angle - arrowAngle),
+                                        ly2 - arrowLen * Math.sin(angle - arrowAngle)
+                                    )
+                                    canvas.moveTo(lx2, ly2)
+                                    canvas.lineTo(
+                                        lx2 - arrowLen * Math.cos(angle + arrowAngle),
+                                        ly2 - arrowLen * Math.sin(angle + arrowAngle)
+                                    )
+                                    canvas.stroke()
+                                }
+                                canvas.restoreState()
+                                lineAnnotation.setNormalAppearance(appearance.pdfObject)
                                 
                                 page.addAnnotation(lineAnnotation)
                             }

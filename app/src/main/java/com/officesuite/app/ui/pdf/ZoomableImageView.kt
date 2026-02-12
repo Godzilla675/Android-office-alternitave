@@ -204,6 +204,11 @@ class ZoomableImageView @JvmOverloads constructor(
     }
 
     private inner class GestureListener : GestureDetector.SimpleOnGestureListener() {
+        override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
+            performClick()
+            return true
+        }
+
         override fun onDoubleTap(e: MotionEvent): Boolean {
             if (currentScale > minScale * 1.5f) {
                 // Zoom out

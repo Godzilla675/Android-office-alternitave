@@ -3,6 +3,7 @@ package com.officesuite.app.pdf
 import android.graphics.Color
 import android.graphics.RectF
 import com.itextpdf.kernel.colors.DeviceRgb
+import com.itextpdf.kernel.font.PdfFontFactory
 import com.itextpdf.kernel.geom.Rectangle
 import com.itextpdf.kernel.pdf.PdfDocument
 import com.itextpdf.kernel.pdf.PdfReader
@@ -13,6 +14,9 @@ import com.itextpdf.kernel.pdf.annot.PdfInkAnnotation
 import com.itextpdf.kernel.pdf.PdfArray
 import com.itextpdf.kernel.pdf.PdfNumber
 import com.itextpdf.kernel.pdf.PdfString
+import com.itextpdf.kernel.pdf.canvas.PdfCanvas
+import com.itextpdf.kernel.pdf.extgstate.PdfExtGState
+import com.itextpdf.kernel.pdf.xobject.PdfFormXObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -129,6 +133,17 @@ class PdfAnnotationManager {
             ))
             highlightAnnotation.setOpacity(PdfNumber(annotation.opacity.toDouble()))
             
+            // Generate appearance stream so annotation is visible in all viewers
+            val appearance = PdfFormXObject(rect)
+            val canvas = PdfCanvas(appearance, pdfDoc)
+            canvas.saveState()
+            canvas.setExtGState(PdfExtGState().setFillOpacity(annotation.opacity))
+            canvas.setFillColor(DeviceRgb(annotation.color.r, annotation.color.g, annotation.color.b))
+            canvas.rectangle(0.0, 0.0, rect.width.toDouble(), rect.height.toDouble())
+            canvas.fill()
+            canvas.restoreState()
+            highlightAnnotation.setNormalAppearance(appearance.pdfObject)
+            
             page.addAnnotation(highlightAnnotation)
             pdfDoc.close()
             
@@ -175,6 +190,18 @@ class PdfAnnotationManager {
             )
             
             underlineAnnotation.setColor(DeviceRgb(color.r, color.g, color.b))
+            
+            // Generate appearance stream so annotation is visible in all viewers
+            val appearance = PdfFormXObject(pdfRect)
+            val canvas = PdfCanvas(appearance, pdfDoc)
+            canvas.saveState()
+            canvas.setStrokeColor(DeviceRgb(color.r, color.g, color.b))
+            canvas.setLineWidth(1f)
+            canvas.moveTo(0.0, 0.5)
+            canvas.lineTo(pdfRect.width.toDouble(), 0.5)
+            canvas.stroke()
+            canvas.restoreState()
+            underlineAnnotation.setNormalAppearance(appearance.pdfObject)
             
             page.addAnnotation(underlineAnnotation)
             pdfDoc.close()
@@ -223,6 +250,18 @@ class PdfAnnotationManager {
             
             strikeAnnotation.setColor(DeviceRgb(color.r, color.g, color.b))
             
+            // Generate appearance stream so annotation is visible in all viewers
+            val appearance = PdfFormXObject(pdfRect)
+            val canvas = PdfCanvas(appearance, pdfDoc)
+            canvas.saveState()
+            canvas.setStrokeColor(DeviceRgb(color.r, color.g, color.b))
+            canvas.setLineWidth(1f)
+            canvas.moveTo(0.0, (pdfRect.height / 2).toDouble())
+            canvas.lineTo(pdfRect.width.toDouble(), (pdfRect.height / 2).toDouble())
+            canvas.stroke()
+            canvas.restoreState()
+            strikeAnnotation.setNormalAppearance(appearance.pdfObject)
+            
             page.addAnnotation(strikeAnnotation)
             pdfDoc.close()
             
@@ -257,6 +296,23 @@ class PdfAnnotationManager {
             
             val freeTextAnnotation = PdfFreeTextAnnotation(pdfRect, PdfString(annotation.text))
             freeTextAnnotation.setContents(annotation.text)
+            
+            // Generate appearance stream so annotation is visible in all viewers
+            val appearance = PdfFormXObject(pdfRect)
+            val canvas = PdfCanvas(appearance, pdfDoc)
+            canvas.saveState()
+            canvas.beginText()
+            val font = PdfFontFactory.createFont()
+            canvas.setFontAndSize(font, annotation.fontSize)
+            val r = Color.red(annotation.textColor)
+            val g = Color.green(annotation.textColor)
+            val b = Color.blue(annotation.textColor)
+            canvas.setFillColor(DeviceRgb(r, g, b))
+            canvas.moveText(2.0, (pdfRect.height - annotation.fontSize).toDouble())
+            canvas.showText(annotation.text)
+            canvas.endText()
+            canvas.restoreState()
+            freeTextAnnotation.setNormalAppearance(appearance.pdfObject)
             
             page.addAnnotation(freeTextAnnotation)
             pdfDoc.close()
@@ -314,6 +370,30 @@ class PdfAnnotationManager {
             val b = Color.blue(annotation.strokeColor)
             inkAnnotation.setColor(DeviceRgb(r, g, b))
             
+            // Generate appearance stream so annotation is visible in all viewers
+            val appearance = PdfFormXObject(pdfRect)
+            val canvas = PdfCanvas(appearance, pdfDoc)
+            canvas.saveState()
+            canvas.setStrokeColor(DeviceRgb(r, g, b))
+            canvas.setLineWidth(annotation.strokeWidth)
+            if (annotation.points.isNotEmpty()) {
+                val firstPoint = annotation.points[0]
+                canvas.moveTo(
+                    (firstPoint.first - pdfRect.x).toDouble(),
+                    (pageHeight - firstPoint.second - pdfRect.y).toDouble()
+                )
+                for (i in 1 until annotation.points.size) {
+                    val point = annotation.points[i]
+                    canvas.lineTo(
+                        (point.first - pdfRect.x).toDouble(),
+                        (pageHeight - point.second - pdfRect.y).toDouble()
+                    )
+                }
+                canvas.stroke()
+            }
+            canvas.restoreState()
+            inkAnnotation.setNormalAppearance(appearance.pdfObject)
+            
             page.addAnnotation(inkAnnotation)
             pdfDoc.close()
             
@@ -363,6 +443,18 @@ class PdfAnnotationManager {
                     annotation.color.b
                 ))
                 highlightAnnotation.setOpacity(PdfNumber(annotation.opacity.toDouble()))
+                
+                // Generate appearance stream
+                val appearance = PdfFormXObject(rect)
+                val canvas = PdfCanvas(appearance, pdfDoc)
+                canvas.saveState()
+                canvas.setExtGState(PdfExtGState().setFillOpacity(annotation.opacity))
+                canvas.setFillColor(DeviceRgb(annotation.color.r, annotation.color.g, annotation.color.b))
+                canvas.rectangle(0.0, 0.0, rect.width.toDouble(), rect.height.toDouble())
+                canvas.fill()
+                canvas.restoreState()
+                highlightAnnotation.setNormalAppearance(appearance.pdfObject)
+                
                 page.addAnnotation(highlightAnnotation)
             }
             
@@ -379,6 +471,24 @@ class PdfAnnotationManager {
                 
                 val freeTextAnnotation = PdfFreeTextAnnotation(pdfRect, PdfString(annotation.text))
                 freeTextAnnotation.setContents(annotation.text)
+                
+                // Generate appearance stream
+                val appearance = PdfFormXObject(pdfRect)
+                val canvas = PdfCanvas(appearance, pdfDoc)
+                canvas.saveState()
+                canvas.beginText()
+                val font = PdfFontFactory.createFont()
+                canvas.setFontAndSize(font, annotation.fontSize)
+                val tr = Color.red(annotation.textColor)
+                val tg = Color.green(annotation.textColor)
+                val tb = Color.blue(annotation.textColor)
+                canvas.setFillColor(DeviceRgb(tr, tg, tb))
+                canvas.moveText(2.0, (pdfRect.height - annotation.fontSize).toDouble())
+                canvas.showText(annotation.text)
+                canvas.endText()
+                canvas.restoreState()
+                freeTextAnnotation.setNormalAppearance(appearance.pdfObject)
+                
                 page.addAnnotation(freeTextAnnotation)
             }
             
@@ -412,6 +522,31 @@ class PdfAnnotationManager {
                 val g = Color.green(annotation.strokeColor)
                 val b = Color.blue(annotation.strokeColor)
                 inkAnnotation.setColor(DeviceRgb(r, g, b))
+                
+                // Generate appearance stream
+                val appearance = PdfFormXObject(pdfRect)
+                val canvas = PdfCanvas(appearance, pdfDoc)
+                canvas.saveState()
+                canvas.setStrokeColor(DeviceRgb(r, g, b))
+                canvas.setLineWidth(annotation.strokeWidth)
+                if (annotation.points.isNotEmpty()) {
+                    val firstPoint = annotation.points[0]
+                    canvas.moveTo(
+                        (firstPoint.first - pdfRect.x).toDouble(),
+                        (pageHeight - firstPoint.second - pdfRect.y).toDouble()
+                    )
+                    for (i in 1 until annotation.points.size) {
+                        val point = annotation.points[i]
+                        canvas.lineTo(
+                            (point.first - pdfRect.x).toDouble(),
+                            (pageHeight - point.second - pdfRect.y).toDouble()
+                        )
+                    }
+                    canvas.stroke()
+                }
+                canvas.restoreState()
+                inkAnnotation.setNormalAppearance(appearance.pdfObject)
+                
                 page.addAnnotation(inkAnnotation)
             }
             
