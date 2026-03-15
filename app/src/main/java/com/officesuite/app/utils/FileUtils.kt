@@ -13,6 +13,7 @@ import com.officesuite.app.data.model.DocumentType
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.util.Locale
 
 object FileUtils {
 
@@ -109,9 +110,9 @@ object FileUtils {
     fun formatFileSize(size: Long): String {
         return when {
             size < 1024 -> "$size B"
-            size < 1024 * 1024 -> String.format("%.1f KB", size / 1024.0)
-            size < 1024 * 1024 * 1024 -> String.format("%.1f MB", size / (1024.0 * 1024.0))
-            else -> String.format("%.1f GB", size / (1024.0 * 1024.0 * 1024.0))
+            size < 1024 * 1024 -> String.format(Locale.US, "%.1f KB", size / 1024.0)
+            size < 1024 * 1024 * 1024 -> String.format(Locale.US, "%.1f MB", size / (1024.0 * 1024.0))
+            else -> String.format(Locale.US, "%.1f GB", size / (1024.0 * 1024.0 * 1024.0))
         }
     }
 
