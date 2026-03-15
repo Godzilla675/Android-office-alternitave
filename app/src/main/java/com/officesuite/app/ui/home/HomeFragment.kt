@@ -175,10 +175,14 @@ class HomeFragment : Fragment() {
     }
 
     private fun handleFileOpened(uri: Uri) {
-        requireContext().contentResolver.takePersistableUriPermission(
-            uri,
-            Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-        )
+        try {
+            requireContext().contentResolver.takePersistableUriPermission(
+                uri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            )
+        } catch (e: SecurityException) {
+            // Permission not available for persistable grant, continue with temporary access
+        }
         
         val fileName = FileUtils.getFileName(requireContext(), uri)
         val docType = FileUtils.getDocumentType(requireContext(), uri)

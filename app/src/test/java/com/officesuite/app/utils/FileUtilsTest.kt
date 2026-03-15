@@ -77,21 +77,21 @@ class FileUtilsTest {
     fun `formatFileSize returns correct format for kilobytes`() {
         val formatted = FileUtils.formatFileSize(2048L)
         
-        assertEquals("2 KB", formatted)
+        assertEquals("2.0 KB", formatted)
     }
 
     @Test
     fun `formatFileSize returns correct format for megabytes`() {
         val formatted = FileUtils.formatFileSize(5 * 1024 * 1024L)
         
-        assertEquals("5 MB", formatted)
+        assertEquals("5.0 MB", formatted)
     }
 
     @Test
     fun `formatFileSize returns correct format for gigabytes`() {
         val formatted = FileUtils.formatFileSize(3L * 1024 * 1024 * 1024)
         
-        assertEquals("3 GB", formatted)
+        assertEquals("3.0 GB", formatted)
     }
 
     @Test
@@ -105,36 +105,36 @@ class FileUtilsTest {
     fun `formatFileSize returns correct format for 1 KB boundary`() {
         val formatted = FileUtils.formatFileSize(1024L)
         
-        assertEquals("1 KB", formatted)
+        assertEquals("1.0 KB", formatted)
     }
 
     @Test
     fun `formatFileSize returns correct format for 1 MB boundary`() {
         val formatted = FileUtils.formatFileSize(1024L * 1024)
         
-        assertEquals("1 MB", formatted)
+        assertEquals("1.0 MB", formatted)
     }
 
     @Test
     fun `formatFileSize returns correct format for 1 GB boundary`() {
         val formatted = FileUtils.formatFileSize(1024L * 1024 * 1024)
         
-        assertEquals("1 GB", formatted)
+        assertEquals("1.0 GB", formatted)
     }
 
     @Test
-    fun `formatFileSize uses integer division for KB`() {
-        // 1500 / 1024 = 1.46 which becomes 1 with integer division
+    fun `formatFileSize shows decimal precision for KB`() {
+        // 1500 / 1024.0 = 1.46
         val formatted = FileUtils.formatFileSize(1500L)
         
-        assertEquals("1 KB", formatted)
+        assertEquals("1.5 KB", formatted)
     }
 
     @Test
     fun `formatFileSize handles large file sizes`() {
         val formatted = FileUtils.formatFileSize(10L * 1024 * 1024 * 1024)
         
-        assertEquals("10 GB", formatted)
+        assertEquals("10.0 GB", formatted)
     }
 
     @Test

@@ -109,9 +109,9 @@ object FileUtils {
     fun formatFileSize(size: Long): String {
         return when {
             size < 1024 -> "$size B"
-            size < 1024 * 1024 -> "${size / 1024} KB"
-            size < 1024 * 1024 * 1024 -> "${size / (1024 * 1024)} MB"
-            else -> "${size / (1024 * 1024 * 1024)} GB"
+            size < 1024 * 1024 -> String.format("%.1f KB", size / 1024.0)
+            size < 1024 * 1024 * 1024 -> String.format("%.1f MB", size / (1024.0 * 1024.0))
+            else -> String.format("%.1f GB", size / (1024.0 * 1024.0 * 1024.0))
         }
     }
 

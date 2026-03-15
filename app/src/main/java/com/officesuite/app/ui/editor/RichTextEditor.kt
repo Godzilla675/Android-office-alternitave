@@ -76,8 +76,9 @@ class RichTextEditor @JvmOverloads constructor(
 
     private fun scheduleSaveUndoState() {
         pendingUndoSave?.let { handler.removeCallbacks(it) }
-        pendingUndoSave = Runnable { saveUndoState() }
-        handler.postDelayed(pendingUndoSave!!, UNDO_DEBOUNCE_DELAY_MS)
+        val runnable = Runnable { saveUndoState() }
+        pendingUndoSave = runnable
+        handler.postDelayed(runnable, UNDO_DEBOUNCE_DELAY_MS)
     }
 
     private fun saveUndoState() {

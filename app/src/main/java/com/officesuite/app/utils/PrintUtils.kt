@@ -120,7 +120,7 @@ object PrintUtils {
         val webView = WebView(context)
         webView.webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: WebView?, url: String?) {
-                createWebPrintJob(context, view!!, jobName)
+                view?.let { createWebPrintJob(context, it, jobName) }
             }
         }
         webView.loadDataWithBaseURL(null, htmlContent, "text/HTML", "UTF-8", null)
@@ -255,8 +255,13 @@ object PrintUtils {
                 }
                 
                 try {
+                    val fd = destination?.fileDescriptor
+                    if (fd == null) {
+                        callback?.onWriteFailed("No output destination")
+                        return
+                    }
                     FileInputStream(file).use { input ->
-                        FileOutputStream(destination?.fileDescriptor).use { output ->
+                        FileOutputStream(fd).use { output ->
                             input.copyTo(output)
                         }
                     }

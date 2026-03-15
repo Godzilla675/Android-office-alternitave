@@ -648,11 +648,13 @@ class DocumentBorderDetector {
 
         // Get top/bottom horizontal lines and left/right vertical lines
         val sortedH = horizontalLines.sortedBy { 
-            val y = (it.rho / sin(it.theta)).coerceIn(0f, height.toFloat())
+            val sinTheta = sin(it.theta)
+            val y = if (sinTheta != 0f) (it.rho / sinTheta).coerceIn(0f, height.toFloat()) else 0f
             y
         }
         val sortedV = verticalLines.sortedBy {
-            val x = (it.rho / cos(it.theta)).coerceIn(0f, width.toFloat())
+            val cosTheta = cos(it.theta)
+            val x = if (cosTheta != 0f) (it.rho / cosTheta).coerceIn(0f, width.toFloat()) else 0f
             x
         }
 

@@ -71,11 +71,13 @@ object AnimationUtils {
                     fadeOut.visibility = View.GONE
                 }
             })
+            .start()
         
         fadeIn.animate()
             .alpha(1f)
             .setDuration(duration)
             .setListener(null)
+            .start()
     }
     
     /**

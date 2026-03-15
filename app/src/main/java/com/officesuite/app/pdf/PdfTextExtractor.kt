@@ -95,14 +95,13 @@ class PdfTextExtractor {
                 val pageText = ITextPdfTextExtractor.getTextFromPage(page, strategy)
                 val searchText = if (caseSensitive) pageText else pageText.lowercase()
                 
-                // Count matches
                 var matchCount = 0
                 var lastIndex = 0
                 while (true) {
                     val index = searchText.indexOf(searchQuery, lastIndex)
                     if (index < 0) break
                     matchCount++
-                    lastIndex = index + 1
+                    lastIndex = index + searchQuery.length
                 }
                 
                 if (matchCount > 0) {

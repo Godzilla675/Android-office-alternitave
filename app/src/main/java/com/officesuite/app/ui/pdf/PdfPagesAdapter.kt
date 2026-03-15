@@ -21,14 +21,16 @@ class PdfPagesAdapter(
 ) : RecyclerView.Adapter<PdfPagesAdapter.PageViewHolder>() {
 
     private var pdfRenderer: PdfRenderer? = null
+    private var fileDescriptor: ParcelFileDescriptor? = null
     private var pageCount = 0
     private val documentKey = pdfFile.absolutePath
     private val renderedPages = mutableMapOf<Int, Bitmap>()
 
     init {
         try {
-            val fileDescriptor = ParcelFileDescriptor.open(pdfFile, ParcelFileDescriptor.MODE_READ_ONLY)
-            pdfRenderer = PdfRenderer(fileDescriptor)
+            val fd = ParcelFileDescriptor.open(pdfFile, ParcelFileDescriptor.MODE_READ_ONLY)
+            fileDescriptor = fd
+            pdfRenderer = PdfRenderer(fd)
             pageCount = pdfRenderer?.pageCount ?: 0
         } catch (e: Exception) {
             e.printStackTrace()
@@ -62,6 +64,7 @@ class PdfPagesAdapter(
         }
         renderedPages.clear()
         pdfRenderer?.close()
+        fileDescriptor?.close()
         // Clear cached pages for this document
         for (i in 0 until pageCount) {
             val key = MemoryManager.createPageKey(documentKey, i)
