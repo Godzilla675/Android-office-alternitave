@@ -54,7 +54,7 @@ object NavigationUtils {
                 navController.navigate(R.id.jsonViewerFragment, bundle)
             }
             else -> {
-                Toast.makeText(fragment.context, "Unsupported file type", Toast.LENGTH_SHORT).show()
+                Toast.makeText(fragment.context ?: return, "Unsupported file type", Toast.LENGTH_SHORT).show()
             }
         }
     }

@@ -359,56 +359,58 @@ class PptxEditorFragment : Fragment() {
         slideImages.clear()
 
         try {
-            val slideShow = XMLSlideShow(FileInputStream(file))
-            val slideWidth = 960
-            val slideHeight = 540
+            FileInputStream(file).use { fis ->
+                val slideShow = XMLSlideShow(fis)
+                val slideWidth = 960
+                val slideHeight = 540
 
-            for (slide in slideShow.slides) {
-                val bitmap = Bitmap.createBitmap(slideWidth, slideHeight, Bitmap.Config.ARGB_8888)
-                val canvas = Canvas(bitmap)
-                canvas.drawColor(Color.WHITE)
+                for (slide in slideShow.slides) {
+                    val bitmap = Bitmap.createBitmap(slideWidth, slideHeight, Bitmap.Config.ARGB_8888)
+                    val canvas = Canvas(bitmap)
+                    canvas.drawColor(Color.WHITE)
 
-                val textPaint = android.graphics.Paint().apply {
-                    color = Color.BLACK
-                    textSize = 24f
-                    isAntiAlias = true
-                }
+                    val textPaint = android.graphics.Paint().apply {
+                        color = Color.BLACK
+                        textSize = 24f
+                        isAntiAlias = true
+                    }
 
-                val titlePaint = android.graphics.Paint().apply {
-                    color = Color.BLACK
-                    textSize = 36f
-                    textAlign = android.graphics.Paint.Align.CENTER
-                    isAntiAlias = true
-                }
+                    val titlePaint = android.graphics.Paint().apply {
+                        color = Color.BLACK
+                        textSize = 36f
+                        textAlign = android.graphics.Paint.Align.CENTER
+                        isAntiAlias = true
+                    }
 
-                val slideNumber = slideImages.size + 1
-                var yPosition = 60f
-                var hasContent = false
+                    val slideNumber = slideImages.size + 1
+                    var yPosition = 60f
+                    var hasContent = false
 
-                for (shape in slide.shapes) {
-                    if (shape is org.apache.poi.xslf.usermodel.XSLFTextShape) {
-                        val text = shape.text
-                        if (text.isNotBlank()) {
-                            hasContent = true
-                            if (yPosition == 60f) {
-                                canvas.drawText(text.take(40), slideWidth / 2f, yPosition, titlePaint)
-                            } else {
-                                canvas.drawText(text.take(50), 30f, yPosition, textPaint)
+                    for (shape in slide.shapes) {
+                        if (shape is org.apache.poi.xslf.usermodel.XSLFTextShape) {
+                            val text = shape.text ?: ""
+                            if (text.isNotBlank()) {
+                                hasContent = true
+                                if (yPosition == 60f) {
+                                    canvas.drawText(text.take(40), slideWidth / 2f, yPosition, titlePaint)
+                                } else {
+                                    canvas.drawText(text.take(50), 30f, yPosition, textPaint)
+                                }
+                                yPosition += 40f
+                                if (yPosition > slideHeight - 80) break
                             }
-                            yPosition += 40f
-                            if (yPosition > slideHeight - 80) break
                         }
                     }
+
+                    if (!hasContent) {
+                        canvas.drawText("Slide $slideNumber", slideWidth / 2f, slideHeight / 2f, titlePaint)
+                    }
+
+                    slideImages.add(bitmap)
                 }
 
-                if (!hasContent) {
-                    canvas.drawText("Slide $slideNumber", slideWidth / 2f, slideHeight / 2f, titlePaint)
-                }
-
-                slideImages.add(bitmap)
+                slideShow.close()
             }
-
-            slideShow.close()
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -492,7 +494,13 @@ class PptxEditorFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        slideImages.forEach { it.recycle() }
+        slideImages.forEach {
+            try {
+                if (!it.isRecycled) it.recycle()
+            } catch (e: Exception) {
+                // Ignore recycling errors during cleanup
+            }
+        }
         slideImages.clear()
         _binding = null
     }

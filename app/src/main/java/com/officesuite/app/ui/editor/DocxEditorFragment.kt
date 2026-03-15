@@ -290,7 +290,7 @@ class DocxEditorFragment : Fragment() {
             val spannable = SpannableString(" ")
             spannable.setSpan(imageSpan, 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
 
-            val editable = editor.editableText
+            val editable = editor.editableText ?: return
             val insertionPoint = editor.selectionStart.coerceAtLeast(0)
             editable.insert(insertionPoint, spannable)
             val nextIndex = insertionPoint + spannable.length
@@ -379,48 +379,50 @@ class DocxEditorFragment : Fragment() {
         val builder = SpannableStringBuilder()
 
         try {
-            val document = XWPFDocument(FileInputStream(file))
+            FileInputStream(file).use { fis ->
+                val document = XWPFDocument(fis)
 
-            for (paragraph in document.paragraphs) {
-                val text = paragraph.text
-                if (text.isNotEmpty()) {
-                    val start = builder.length
-                    builder.append(text)
-                    builder.append("\n\n")
+                for (paragraph in document.paragraphs) {
+                    val text = paragraph.text
+                    if (text.isNotEmpty()) {
+                        val start = builder.length
+                        builder.append(text)
+                        builder.append("\n\n")
 
-                    for (run in paragraph.runs) {
-                        if (run.isBold) {
-                            builder.setSpan(
-                                StyleSpan(Typeface.BOLD),
-                                start,
-                                start + text.length,
-                                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-                            )
-                        }
-                        if (run.isItalic) {
-                            builder.setSpan(
-                                StyleSpan(Typeface.ITALIC),
-                                start,
-                                start + text.length,
-                                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-                            )
+                        for (run in paragraph.runs) {
+                            if (run.isBold) {
+                                builder.setSpan(
+                                    StyleSpan(Typeface.BOLD),
+                                    start,
+                                    start + text.length,
+                                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                                )
+                            }
+                            if (run.isItalic) {
+                                builder.setSpan(
+                                    StyleSpan(Typeface.ITALIC),
+                                    start,
+                                    start + text.length,
+                                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                                )
+                            }
                         }
                     }
                 }
-            }
 
-            for (table in document.tables) {
-                for (row in table.rows) {
-                    for (cell in row.tableCells) {
-                        builder.append(cell.text)
-                        builder.append("\t")
+                for (table in document.tables) {
+                    for (row in table.rows) {
+                        for (cell in row.tableCells) {
+                            builder.append(cell.text)
+                            builder.append("\t")
+                        }
+                        builder.append("\n")
                     }
                     builder.append("\n")
                 }
-                builder.append("\n")
-            }
 
-            document.close()
+                document.close()
+            }
         } catch (e: Exception) {
             e.printStackTrace()
             builder.append("Error reading document: ${e.message}")

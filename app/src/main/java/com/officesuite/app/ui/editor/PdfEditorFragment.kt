@@ -368,10 +368,11 @@ class PdfEditorFragment : Fragment() {
     }
     
     private fun saveAnnotationsWithIText(inputFile: File, outputFile: File) {
+        var pdfDoc: com.itextpdf.kernel.pdf.PdfDocument? = null
         try {
             val reader = com.itextpdf.kernel.pdf.PdfReader(inputFile)
             val writer = com.itextpdf.kernel.pdf.PdfWriter(outputFile)
-            val pdfDoc = com.itextpdf.kernel.pdf.PdfDocument(reader, writer)
+            pdfDoc = com.itextpdf.kernel.pdf.PdfDocument(reader, writer)
             
             // Process annotations for each page
             pageAnnotations.forEach { (pageIndex, annotations) ->
@@ -609,6 +610,8 @@ class PdfEditorFragment : Fragment() {
             
             pdfDoc.close()
         } catch (e: Exception) {
+            // Ensure pdfDoc is closed even on error
+            try { pdfDoc?.close() } catch (_: Exception) {}
             // If iText fails, fall back to copying the original file
             // This ensures the user at least gets their original PDF
             inputFile.copyTo(outputFile, overwrite = true)
